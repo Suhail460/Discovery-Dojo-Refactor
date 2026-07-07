@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   DISCOVERY DOJO — DESIGN TOKENS
+   Color strategy: Committed. Warm ink base, vermilion accent,
+   plum for progression chrome. Neutrals tinted toward hue 40.
+   ============================================================ */
+:root{
+  --hue: 40;
+  --bg:        oklch(0.982 0.006 var(--hue));
+  --surface:   oklch(0.998 0.003 var(--hue));
+  --surface-2: oklch(0.965 0.008 var(--hue));
+  --surface-3: oklch(0.935 0.010 var(--hue));
+  --line:      oklch(0.895 0.010 var(--hue));
+  --line-soft: oklch(0.925 0.008 var(--hue));
+
+  --ink:       oklch(0.245 0.020 40);
+  --ink-2:     oklch(0.430 0.018 40);
+  --ink-3:     oklch(0.585 0.015 40);
+
+  --accent:    oklch(0.625 0.185 33);
+  --accent-ink:oklch(0.470 0.170 33);
+  --accent-wash:oklch(0.955 0.032 33);
+
+  --plum:      oklch(0.470 0.120 300);
+  --plum-2:    oklch(0.620 0.130 300);
+  --plum-wash: oklch(0.955 0.028 300);
+
+  --gold:      oklch(0.760 0.140 78);
+  --gold-ink:  oklch(0.560 0.120 70);
+  --gold-wash: oklch(0.960 0.045 82);
+
+  --ok:        oklch(0.615 0.130 150);
+  --ok-wash:   oklch(0.955 0.035 150);
+  --bad:       oklch(0.575 0.185 27);
+  --bad-wash:  oklch(0.955 0.038 27);
+  --info:      oklch(0.560 0.110 240);
+  --info-wash: oklch(0.955 0.030 240);
+
+  --sh-sm: 0 1px 2px oklch(0.4 0.02 40 / 0.06), 0 1px 1px oklch(0.4 0.02 40 / 0.04);
+  --sh-md: 0 4px 14px oklch(0.4 0.02 40 / 0.08), 0 2px 4px oklch(0.4 0.02 40 / 0.05);
+  --sh-lg: 0 18px 46px oklch(0.35 0.03 40 / 0.14), 0 6px 14px oklch(0.35 0.03 40 / 0.08);
+
+  --r-sm:8px; --r-md:14px; --r-lg:22px; --r-xl:30px;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+  --ease-quart:cubic-bezier(0.25,1,0.5,1);
+}
+[data-theme="dark"]{
+  --bg:        oklch(0.165 0.014 300);
+  --surface:   oklch(0.205 0.016 300);
+  --surface-2: oklch(0.245 0.018 300);
+  --surface-3: oklch(0.290 0.020 300);
+  --line:      oklch(0.330 0.020 300);
+  --line-soft: oklch(0.285 0.018 300);
+
+  --ink:       oklch(0.945 0.010 60);
+  --ink-2:     oklch(0.800 0.014 60);
+  --ink-3:     oklch(0.660 0.016 60);
+
+  --accent:    oklch(0.700 0.160 36);
+  --accent-ink:oklch(0.780 0.150 40);
+  --accent-wash:oklch(0.300 0.060 33);
+
+  --plum:      oklch(0.700 0.120 300);
+  --plum-2:    oklch(0.760 0.120 300);
+  --plum-wash: oklch(0.290 0.055 300);
+
+  --gold:      oklch(0.800 0.130 82);
+  --gold-ink:  oklch(0.820 0.120 82);
+  --gold-wash: oklch(0.320 0.055 82);
+
+  --ok:        oklch(0.720 0.130 152);
+  --ok-wash:   oklch(0.300 0.050 152);
+  --bad:       oklch(0.700 0.160 30);
+  --bad-wash:  oklch(0.320 0.060 27);
+  --info:      oklch(0.720 0.110 240);
+  --info-wash: oklch(0.300 0.050 240);
+
+  --sh-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --sh-md: 0 4px 14px oklch(0 0 0 / 0.34);
+  --sh-lg: 0 18px 46px oklch(0 0 0 / 0.5);
+}
+
+*{box-sizing:border-box}
+html,body,#root{margin:0;padding:0;min-height:100%}
+body{
+  font-family:var(--font-body, ui-sans-serif, system-ui, sans-serif);
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  font-optical-sizing:auto;
+  transition:background .4s var(--ease-out), color .4s var(--ease-out);
+}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque",ui-sans-serif,sans-serif;font-weight:700;line-height:1.12;text-wrap:balance;margin:0;letter-spacing:-0.015em}
+.font-serif-q{font-family:"Newsreader",Georgia,serif}
+::selection{background:var(--accent-wash);color:var(--accent-ink)}
+.tnum{font-variant-numeric:tabular-nums}
+
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px;border:2px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+
+/* ---- reusable component classes (Tailwind @layer would also work) ---- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-sm)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.03em}
+.pill-lvl{background:var(--plum-wash);color:var(--plum)}
+.pill-time{background:var(--surface-2);color:var(--ink-2)}
+.pill-d1{background:var(--ok-wash);color:var(--ok)}
+.pill-d2{background:var(--gold-wash);color:var(--gold-ink)}
+.pill-d3{background:var(--bad-wash);color:var(--bad)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:var(--r-md);border:1.5px solid transparent;font-weight:700;font-size:.92rem;cursor:pointer;transition:all .18s var(--ease-quart)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:var(--sh-sm)}
+.btn-primary:hover:not(:disabled){filter:brightness(1.06);box-shadow:var(--sh-md);transform:translateY(-1px)}
+.btn-plum{background:var(--plum);color:#fff}
+.btn-plum:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink-2)}
+.btn-ghost:hover:not(:disabled){border-color:var(--ink-3);color:var(--ink)}
+.btn-sm{padding:8px 14px;font-size:.84rem}
+
+.input{width:100%;border:1.5px solid var(--line);border-radius:var(--r-md);background:var(--surface);color:var(--ink);font-family:inherit;font-size:1rem;padding:12px 14px;transition:border-color .16s}
+.input:focus{outline:none;border-color:var(--plum);box-shadow:0 0 0 3px var(--plum-wash)}
+
+.prose-q p{margin:0 0 16px;text-wrap:pretty}
+.prose-q strong{font-weight:700}
+.prose-q em{font-family:"Newsreader",Georgia,serif;font-style:italic}
+.prose-q code{font-family:"JetBrains Mono",monospace;font-size:.86em;background:var(--surface-2);padding:2px 6px;border-radius:6px;color:var(--accent-ink)}
+.prose-q ul{margin:0 0 16px;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.prose-q ul li{padding-left:26px;position:relative}
+.prose-q ul li::before{content:"";position:absolute;left:4px;top:11px;width:7px;height:7px;border-radius:2px;background:var(--accent);transform:rotate(45deg)}
+
+.mermaid-wrap svg{max-width:100%;height:auto;display:block;margin:0 auto}
+
+.fade-in{animation:rise .5s var(--ease-out) both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
