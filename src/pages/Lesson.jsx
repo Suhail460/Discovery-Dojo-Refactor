@@ -10,7 +10,7 @@ const CONF = ['Shaky', 'Getting it', 'Solid', 'Could teach it']
 
 export default function Lesson({ nav, toast }) {
   const store = useStore()
-  const { state, update, addXP, bumpStreak, checkBadges, screenId, levelScreens, levelDone } = store
+  const { state, update, addXP, bumpStreak, checkBadges, screenId, levelDone } = store
   const lvl = CURRICULUM.find((x) => x.id === nav.current.level)
   const n = lvl.screens.length
   const idx = Math.min(nav.current.screen || 0, n - 1)

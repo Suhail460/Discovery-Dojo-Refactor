@@ -41,7 +41,7 @@ export default function LoginScreen() {
             Learn to decide what to build.
           </motion.h1>
           <p style={{ fontFamily: '"Newsreader", Georgia, serif', fontSize: '1.15rem', color: 'oklch(1 0 0 / 0.9)', lineHeight: 1.5 }}>
-            Fifteen levels, a live customer-interview simulator, endless generated scenarios, and an AI coach who won't just hand you the answer.
+            Fifteen levels, a live customer-interview simulator, endless generated scenarios, and an AI coach who won&apos;t just hand you the answer.
           </p>
           <div style={{ marginTop: 28, display: 'flex', gap: 22, flexWrap: 'wrap', fontSize: '.9rem', fontWeight: 600 }}>
             <span>🎤 Interview sim</span><span>🌳 Solution trees</span><span>🏁 Capstone project</span>

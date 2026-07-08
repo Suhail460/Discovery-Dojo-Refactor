@@ -3,8 +3,9 @@ import * as Icons from 'lucide-react'
 import { Swords, PartyPopper, Lightbulb } from 'lucide-react'
 import { CHALLENGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
+import { toPascal } from '../utils/helpers.js'
 
-export default function Challenges({ toast }) {
+export default function Challenges() {
   const { update, addXP, bumpStreak, checkBadges } = useStore()
   const [answered, setAnswered] = useState({})
 
@@ -60,4 +61,4 @@ export default function Challenges({ toast }) {
     </div>
   )
 }
-function toPascal(s) { return s.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('') }
+

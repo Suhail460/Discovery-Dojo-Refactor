@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Mic, Infinity as Inf, Play, Flag, Send, MessagesSquare, MicOff, RotateCcw, AlertTriangle, Megaphone, Check, MinusCircle, ClipboardList } from 'lucide-react'
 import { PERSONA_OPTS } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
+import { clamp, pick, cap } from '../utils/helpers.js'
 
 /* Live customer interview simulator with question analysis + scorecard. */
 export default function InterviewSim({ toast }) {
@@ -100,7 +101,7 @@ export default function InterviewSim({ toast }) {
               {log.length ? log.map((m, i) => <Bubble key={i} m={m} />) : (
                 <div style={{ textAlign: 'center', padding: '48px 16px', color: 'var(--ink-3)' }}>
                   <MicOff size={44} color="var(--line)" style={{ marginBottom: 12 }} />
-                  <p>Start an interview to begin. Tip: open with 'Tell me about the last time you...' instead of pitching anything.</p>
+                  <p>Start an interview to begin. Tip: open with &apos;Tell me about the last time you...&apos; instead of pitching anything.</p>
                 </div>
               )}
             </div>
@@ -180,9 +181,6 @@ function Scorecard({ d, onReset }) {
 
 /* ---- analysis + persona reply engine ---- */
 function zeroFlags() { return { lead: 0, closed: 0, sol: 0, good: 0, openStory: 0, why: 0, rapport: 0 } }
-function clamp(n) { return Math.max(0, Math.min(100, n)) }
-function pick(a) { return a[Math.floor(Math.random() * a.length)] }
-function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s }
 
 function analyze(q) {
   const l = q.toLowerCase()

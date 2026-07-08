@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PartyPopper, Lightbulb, Check, MinusCircle, AlertTriangle, GripVertical } from 'lucide-react'
+import { PartyPopper, Lightbulb, Check, GripVertical } from 'lucide-react'
+import { shuffle } from '../../utils/helpers.js'
 
 /* Handles mcq | truefalse | order | match. Calls onResult(correctBool) once. */
 export default function Quiz({ quiz, onResult }) {
@@ -173,4 +174,4 @@ function Matching({ quiz, onResult }) {
   )
 }
 
-function shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a }
+

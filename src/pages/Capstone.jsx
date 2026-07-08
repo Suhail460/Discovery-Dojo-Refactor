@@ -3,11 +3,10 @@ import * as Icons from 'lucide-react'
 import { Flag, Save, Award, Check } from 'lucide-react'
 import { CAP_STAGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
-
-const toPascal = (s) => s.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')
+import { toPascal } from '../utils/helpers.js'
 
 export default function Capstone({ nav, toast }) {
-  const { state, update, addXP, checkBadges } = useStore()
+  const { state, update, checkBadges } = useStore()
   const [draft, setDraft] = useState(() => ({ ...state.capstone }))
   const [report, setReport] = useState(null)
 
@@ -78,9 +77,9 @@ export default function Capstone({ nav, toast }) {
       {report && (
         <div id="cap-report" className="card fade-in" style={{ padding: 24, marginTop: 24 }}>
           <h3 style={{ fontFamily: '"Bricolage Grotesque"', fontSize: '1.4rem', marginBottom: 6 }}>🏁 Capstone feedback report</h3>
-          <p style={{ color: 'var(--ink-3)', marginBottom: 16 }}>You completed a full discovery project. Here's what your coach sees.</p>
+          <p style={{ color: 'var(--ink-3)', marginBottom: 16 }}>You completed a full discovery project. Here&apos;s what your coach sees.</p>
           <ul className="prose-q">{report.map((n, i) => <li key={i}>{n}</li>)}</ul>
-          <div style={{ marginTop: 16, padding: 16, background: 'var(--ok-wash)', borderRadius: 14, fontWeight: 600, color: 'var(--ink)' }}>Practitioner badge earned. You've gone from absolute beginner to running a complete, evidence-driven discovery. Now go do it for real.</div>
+          <div style={{ marginTop: 16, padding: 16, background: 'var(--ok-wash)', borderRadius: 14, fontWeight: 600, color: 'var(--ink)' }}>Practitioner badge earned. You&apos;ve gone from absolute beginner to running a complete, evidence-driven discovery. Now go do it for real.</div>
         </div>
       )}
     </div>

@@ -2,11 +2,9 @@ import { useState } from 'react'
 import { Dices, Infinity as Inf, Shuffle, Mic, ListChecks } from 'lucide-react'
 import { GEN } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
+import { pick, cap } from '../utils/helpers.js'
 
-const pick = (a) => a[Math.floor(Math.random() * a.length)]
-const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
-
-export default function Generator({ nav, toast }) {
+export default function Generator({ nav }) {
   const { update, addXP, bumpStreak, checkBadges } = useStore()
   const [g, setG] = useState(null)
 
@@ -33,10 +31,10 @@ export default function Generator({ nav, toast }) {
 
       {g ? (
         <div className="card fade-in" style={{ padding: 32 }}>
-          <h3 style={{ fontFamily: '"Bricolage Grotesque"', fontSize: '1.4rem', marginBottom: 4 }}>You're a PM at {g.company}.</h3>
-          <p style={{ color: 'var(--ink-3)', marginBottom: 20 }}>Difficulty: {g.diff}. Work this brief like it's Monday morning.</p>
+          <h3 style={{ fontFamily: '"Bricolage Grotesque"', fontSize: '1.4rem', marginBottom: 4 }}>You&apos;re a PM at {g.company}.</h3>
+          <p style={{ color: 'var(--ink-3)', marginBottom: 20 }}>Difficulty: {g.diff}. Work this brief like it&apos;s Monday morning.</p>
           <Row k="The problem" big>{cap(g.problem)}.</Row>
-          <Row k="Who's affected">{cap(g.customer)}</Row>
+          <Row k="Who&apos;s affected">{cap(g.customer)}</Row>
           <Row k="Market stage">{cap(g.market)}</Row>
           <Row k="Competition">{cap(g.competition)}</Row>
           <Row k="Budget">{cap(g.budget)}</Row>
@@ -48,7 +46,7 @@ export default function Generator({ nav, toast }) {
               <li>List the 3 riskiest assumptions and pick which to test first.</li>
               <li>Choose a research method that fits your <b>{g.time}</b> and <b>{g.budget}</b>.</li>
               <li>Run one interview in the simulator with a matching persona.</li>
-              <li>Write one opportunity statement in the customer's voice.</li>
+              <li>Write one opportunity statement in the customer&apos;s voice.</li>
               <li>Design the cheapest experiment that could kill the idea.</li>
             </ul>
           </div>

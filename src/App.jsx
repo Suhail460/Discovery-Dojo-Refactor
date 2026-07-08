@@ -4,6 +4,7 @@ import * as Icons from 'lucide-react'
 import { Sparkles } from 'lucide-react'
 import { useAuth } from './context/AuthContext.jsx'
 import { useStore } from './hooks/useStore.jsx'
+import { toPascal } from './utils/helpers.js'
 import LoginScreen from './pages/LoginScreen.jsx'
 import Sidebar from './components/layout/Sidebar.jsx'
 import TopBar from './components/layout/TopBar.jsx'
@@ -15,8 +16,6 @@ import Generator from './pages/Generator.jsx'
 import Challenges from './pages/Challenges.jsx'
 import Capstone from './pages/Capstone.jsx'
 import Badges from './pages/Badges.jsx'
-
-const toPascal = (s) => s.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')
 
 export default function App() {
   const { ready, isAuthed } = useAuth()
@@ -63,8 +62,8 @@ export default function App() {
               {view === 'home' && <Dashboard nav={nav} />}
               {view === 'level' && <Lesson nav={nav} toast={toast} />}
               {view === 'interview' && <InterviewSim toast={toast} />}
-              {view === 'generator' && <Generator nav={nav} toast={toast} />}
-              {view === 'challenges' && <Challenges toast={toast} />}
+              {view === 'generator' && <Generator nav={nav} />}
+              {view === 'challenges' && <Challenges />}
               {view === 'capstone' && <Capstone nav={nav} toast={toast} />}
               {view === 'badges' && <Badges nav={nav} />}
             </motion.div>
