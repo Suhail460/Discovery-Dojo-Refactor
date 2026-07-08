@@ -1,4 +1,4 @@
-import { Compass, LayoutDashboard, Mic, Dices, Swords, Flag, Award, Lock, Check, RotateCcw } from 'lucide-react'
+import { Compass, LayoutDashboard, Mic, Dices, Swords, Flag, Award, Lock, Check, RotateCcw, X } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 import { useStore } from '../../hooks/useStore.jsx'
 
@@ -17,23 +17,33 @@ export default function Sidebar({ nav, open, onClose, onReset }) {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'oklch(0.2 0.02 40 / 0.45)', zIndex: 39, display: open ? 'block' : 'none' }} className="sb-scrim" />
-      <aside style={{
-        background: 'var(--surface)', borderRight: '1px solid var(--line)', padding: '24px 16px',
-        display: 'flex', flexDirection: 'column', gap: 16, zIndex: 40, overflowY: 'auto'
-      }} className={'sidebar' + (open ? ' open' : '')}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px' }}>
+      <div onClick={onClose} className="sb-overlay" aria-hidden="true"
+        style={{ position: 'fixed', inset: 0, background: 'oklch(0 0 0 / 0.4)', backdropFilter: 'blur(4px)', zIndex: 39, display: open ? 'block' : 'none' }} />
+      <aside className="sidebar" role="navigation" aria-label="Navigation sidebar"
+        style={{
+          background: 'var(--surface)', borderRight: '1px solid var(--line)', padding: '24px 16px',
+          display: 'flex', flexDirection: 'column', gap: 16, zIndex: 40, overflowY: 'auto',
+          position: 'fixed', left: 0, top: 0, width: 300, height: '100dvh',
+          transform: open ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform .35s var(--ease-out)',
+          boxShadow: 'var(--sh-lg)',
+        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px', marginBottom: 8 }}>
           <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(145deg,var(--accent),var(--plum))', display: 'grid', placeItems: 'center', color: '#fff', boxShadow: 'var(--sh-md)', transform: 'rotate(-4deg)' }}><Compass size={22} /></div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div style={{ fontFamily: '"Bricolage Grotesque"', fontWeight: 800, fontSize: '1.12rem', lineHeight: 1 }}>Discovery Dojo</div>
             <div style={{ fontSize: '.7rem', color: 'var(--ink-3)', letterSpacing: '.04em', textTransform: 'uppercase', marginTop: 3 }}>Product Discovery Mastery</div>
           </div>
+          <button onClick={onClose} className="hide-desktop" aria-label="Close sidebar"
+            style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid var(--line)', background: 'var(--surface)', display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer' }}>
+            <X size={18} />
+          </button>
         </div>
 
         <div>
           <GroupLabel>Practice</GroupLabel>
           {NAV.map((n) => (
-            <NavBtn key={n.view} active={view === n.view} icon={n.icon} label={n.label} onClick={() => nav.go(n.view)} />
+            <NavBtn key={n.view} active={view === n.view} icon={n.icon} label={n.label} onClick={() => { nav.go(n.view); onClose() }} />
           ))}
         </div>
 
@@ -45,7 +55,7 @@ export default function Sidebar({ nav, open, onClose, onReset }) {
               const active = view === 'level' && level === l.id
               const pct = Math.round((levelDoneCount(l.id) / levelScreens(l.id)) * 100)
               return (
-                <button key={l.id} disabled={!unlocked} onClick={() => nav.openLevel(l.id)}
+                <button key={l.id} disabled={!unlocked} onClick={() => { nav.openLevel(l.id); onClose() }}
                   style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', border: 'none', background: active ? 'var(--plum-wash)' : 'transparent', padding: '8px 12px', borderRadius: 8, cursor: unlocked ? 'pointer' : 'not-allowed', opacity: unlocked ? 1 : .5, transition: 'all .18s' }}>
                   <span style={{ width: 26, height: 26, borderRadius: 8, flex: 'none', display: 'grid', placeItems: 'center', fontFamily: '"Bricolage Grotesque"', fontWeight: 700, fontSize: '.78rem', background: done ? 'var(--ok)' : active ? 'var(--plum)' : 'var(--surface-3)', color: done || active ? '#fff' : 'var(--ink-2)', border: done || active ? 'none' : '1px solid var(--line)' }}>
                     {done ? <Check size={14} /> : l.id}

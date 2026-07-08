@@ -5,8 +5,10 @@ import { CURRICULUM } from '../../data/curriculum.js'
 
 /* Socratic coach. Rule-based, context-aware replies. It nudges rather than
    hands over answers. Swap coachReply() for an LLM API call to go live. */
-export default function Coach({ nav }) {
-  const [open, setOpen] = useState(false)
+export default function Coach({ nav, open: controlledOpen, onClose }) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = onClose ? (v) => { if (!v && onClose) onClose(); else setInternalOpen(v) } : setInternalOpen
   const [msgs, setMsgs] = useState([{ who: 'bot', text: "Hey, I'm Mei, your discovery coach. I won't just hand you answers, I'll nudge your thinking. Ask me anything, or tap a prompt below." }])
   const [input, setInput] = useState('')
   const bodyRef = useRef(null)

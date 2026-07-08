@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Sidebar from './Sidebar.jsx'
 import TopBar from './TopBar.jsx'
+import BottomNav from './BottomNav.jsx'
 import Coach from '../coach/Coach.jsx'
 import { useStore } from '../../hooks/useStore.jsx'
 import { useToast } from '../../context/ToastContext.jsx'
@@ -13,10 +14,13 @@ export default function AppLayout() {
   const { toast } = useToast()
   const nav = useNavigation(toast)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [coachOpen, setCoachOpen] = useState(false)
   const location = useLocation()
 
-  // Close sidebar on navigation for mobile
   useEffect(() => { setSidebarOpen(false) }, [location.pathname])
+
+  const view = nav.current.view
+  const showBottomNav = view !== 'level'
 
   function reset() {
     if (!window.confirm("Reset all progress, XP, badges, interviews, and capstone? This can't be undone.")) return
@@ -24,35 +28,20 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="app-grid" style={{ display: 'grid', gridTemplateColumns: '296px 1fr', minHeight: '100vh' }}>
+    <div className="app-shell">
       <Sidebar nav={nav} open={sidebarOpen} onClose={() => setSidebarOpen(false)} onReset={reset} />
-      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <TopBar nav={nav} onMenu={() => setSidebarOpen(true)} />
-        <main style={{ padding: 'clamp(20px,4vw,52px) clamp(16px,4vw,40px)', width: '100%' }}>
+      <div className="app-main">
+        <TopBar nav={nav} onMenu={() => setSidebarOpen(true)} onCoachToggle={() => setCoachOpen((o) => !o)} />
+        <main className="app-content">
           <AnimatePresence mode="wait">
-            <motion.div key={location.pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: .22 }}>
+            <motion.div key={location.pathname} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
               <Outlet />
             </motion.div>
           </AnimatePresence>
         </main>
+        {showBottomNav && <BottomNav nav={nav} view={view} />}
       </div>
-      <Coach nav={nav} />
-        <style>{`
-        @media (max-width:1000px){
-          .app-grid{ grid-template-columns:1fr !important }
-          .sidebar{ position:fixed; left:0; top:0; width:300px; height:100dvh; transform:translateX(-100%); transition:transform .35s cubic-bezier(0.16,1,0.3,1); box-shadow:var(--sh-lg); z-index:40 }
-          .sidebar.open{ transform:translateX(0) }
-          .sb-scrim{ backdrop-filter:blur(4px) !important }
-        }
-        @media (min-width:1001px){
-          .sidebar{ position:sticky; top:0; height:100vh }
-          .sb-scrim{ display:none !important }
-        }
-        @media (max-width:560px){
-          .chip-hide-sm{ display:none !important }
-          .app-grid .sidebar{ width:280px }
-        }
-      `}</style>
+      <Coach nav={nav} open={coachOpen} onClose={() => setCoachOpen(false)} />
     </div>
   )
 }

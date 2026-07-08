@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { Menu, Zap, Flame, Gauge, Moon, Sun, LogOut, Download, Upload } from 'lucide-react'
+import { Menu, Zap, Flame, Gauge, Moon, Sun, LogOut, Download, Upload, Sparkles } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 import { useStore } from '../../hooks/useStore.jsx'
 import { useTheme } from '../../context/ThemeContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 
-export default function TopBar({ nav, onMenu }) {
+export default function TopBar({ nav, onMenu, onCoachToggle }) {
   const { state, masteryPct, exportData, importData } = useStore()
   const { theme, toggle } = useTheme()
   const { user, logout } = useAuth()
@@ -42,6 +42,7 @@ export default function TopBar({ nav, onMenu }) {
         <Chip icon={<Zap size={15} />} color="var(--plum)">{state.xp} XP</Chip>
         <Chip icon={<Flame size={15} />} color="var(--accent)">{state.streak || 0}</Chip>
         <Chip icon={<Gauge size={15} />} color="var(--gold-ink)" hideSm>{masteryPct()}%</Chip>
+        <IconBtn onClick={onCoachToggle} title="Ask the AI coach"><Sparkles size={18} /></IconBtn>
         <IconBtn onClick={toggle} title="Toggle theme">{theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}</IconBtn>
 
         <div style={{ position: 'relative' }} ref={popRef}>

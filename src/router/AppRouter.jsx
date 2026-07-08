@@ -13,6 +13,7 @@ const Generator = lazy(() => import('../pages/Generator.jsx'))
 const Challenges = lazy(() => import('../pages/Challenges.jsx'))
 const Capstone = lazy(() => import('../pages/Capstone.jsx'))
 const Badges = lazy(() => import('../pages/Badges.jsx'))
+const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard.jsx'))
 const NotFound = lazy(() => import('../pages/NotFound.jsx'))
 
 function SuspenseFallback() {
@@ -49,6 +50,7 @@ export default function AppRouter() {
             <Route path="challenges" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Challenges /></Suspense></ErrorBoundary>} />
             <Route path="capstone" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Capstone /></Suspense></ErrorBoundary>} />
             <Route path="badges" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Badges /></Suspense></ErrorBoundary>} />
+            <Route path="admin" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><AdminDashboard /></Suspense></ErrorBoundary>} />
             <Route path="*" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><NotFound /></Suspense></ErrorBoundary>} />
           </Route>
         </Route>
