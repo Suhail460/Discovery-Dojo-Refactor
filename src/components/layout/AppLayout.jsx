@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Sidebar from './Sidebar.jsx'
@@ -14,6 +14,9 @@ export default function AppLayout() {
   const nav = useNavigation(toast)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+
+  // Close sidebar on navigation for mobile
+  useEffect(() => { setSidebarOpen(false) }, [location.pathname])
 
   function reset() {
     if (!window.confirm("Reset all progress, XP, badges, interviews, and capstone? This can't be undone.")) return
@@ -34,17 +37,21 @@ export default function AppLayout() {
         </main>
       </div>
       <Coach nav={nav} />
-      <style>{`
+        <style>{`
         @media (max-width:1000px){
           .app-grid{ grid-template-columns:1fr !important }
-          .sidebar{ position:fixed; left:0; top:0; width:300px; height:100vh; transform:translateX(-100%); transition:transform .35s cubic-bezier(0.16,1,0.3,1); box-shadow:var(--sh-lg) }
+          .sidebar{ position:fixed; left:0; top:0; width:300px; height:100dvh; transform:translateX(-100%); transition:transform .35s cubic-bezier(0.16,1,0.3,1); box-shadow:var(--sh-lg); z-index:40 }
           .sidebar.open{ transform:translateX(0) }
+          .sb-scrim{ backdrop-filter:blur(4px) !important }
         }
         @media (min-width:1001px){
           .sidebar{ position:sticky; top:0; height:100vh }
           .sb-scrim{ display:none !important }
         }
-        @media (max-width:560px){ .chip-hide-sm{ display:none !important } }
+        @media (max-width:560px){
+          .chip-hide-sm{ display:none !important }
+          .app-grid .sidebar{ width:280px }
+        }
       `}</style>
     </div>
   )

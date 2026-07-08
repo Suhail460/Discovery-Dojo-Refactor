@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { Analytics } from '@vercel/analytics/react'
 import AppRouter from './router/AppRouter.jsx'
 import './styles/index.css'
 import { HelmetProvider } from 'react-helmet-async'
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <ProgressProvider>
           <ToastProvider>
             <AppRouter />
+            <Analytics />
           </ToastProvider>
         </ProgressProvider>
       </AuthProvider>

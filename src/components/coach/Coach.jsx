@@ -11,28 +11,31 @@ export default function Coach({ nav }) {
   const [input, setInput] = useState('')
   const bodyRef = useRef(null)
 
-  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight }, [msgs, open])
+  const [typing, setTyping] = useState(false)
+
+  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight }, [msgs, open, typing])
 
   const chips = chipsFor(nav.current.view)
   function send(text) {
     const t = (text ?? input).trim(); if (!t) return
     setMsgs((m) => [...m, { who: 'me', text: t }])
     setInput('')
-    setTimeout(() => setMsgs((m) => [...m, { who: 'bot', text: coachReply(t, nav.current) }]), 260)
+    setTyping(true)
+    setTimeout(() => { setMsgs((m) => [...m, { who: 'bot', text: coachReply(t, nav.current) }]); setTyping(false) }, 360 + Math.random() * 200)
   }
 
   return (
     <>
-      <button onClick={() => setOpen(!open)} title="Ask your AI coach"
-        style={{ position: 'fixed', right: 22, bottom: 22, zIndex: 60, width: 58, height: 58, borderRadius: 18, border: 'none', background: 'linear-gradient(145deg,var(--plum),var(--accent))', color: '#fff', display: 'grid', placeItems: 'center', boxShadow: 'var(--sh-lg)', cursor: 'pointer' }}>
-        <Sparkles size={26} />
+      <button onClick={() => setOpen(!open)} title="Ask your AI coach" aria-label="Toggle AI coach"
+        className="coach-fab" style={{ position: 'fixed', right: 22, bottom: 22, zIndex: 60, width: 58, height: 58, borderRadius: 18, border: 'none', background: 'linear-gradient(145deg,var(--plum),var(--accent))', color: '#fff', display: 'grid', placeItems: 'center', boxShadow: 'var(--sh-lg)', cursor: 'pointer', transition: 'transform 0.2s var(--ease-out)' }}>
+        <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.25 }}><Sparkles size={26} /></motion.div>
         <span style={{ position: 'absolute', top: -3, right: -3, width: 16, height: 16, background: 'var(--gold)', borderRadius: '50%', border: '2px solid var(--bg)', fontSize: '.6rem', color: '#000', display: 'grid', placeItems: 'center', fontWeight: 800 }}>?</span>
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div initial={{ opacity: 0, y: 16, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: .98 }} transition={{ duration: .25 }}
-            style={{ position: 'fixed', right: 22, bottom: 92, zIndex: 61, width: 'min(390px, calc(100vw - 44px))', maxHeight: 'min(620px, calc(100vh - 130px))', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 30, boxShadow: 'var(--sh-lg)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            className="coach-panel" style={{ position: 'fixed', right: 22, bottom: 92, zIndex: 61, width: 'min(390px, calc(100vw - 44px))', maxHeight: 'min(620px, calc(100vh - 130px))', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 30, boxShadow: 'var(--sh-lg)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: 16, borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12, background: 'linear-gradient(180deg,var(--plum-wash),transparent)' }}>
               <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(145deg,var(--plum),var(--accent))', display: 'grid', placeItems: 'center', color: '#fff' }}><Sparkles size={20} /></div>
               <div style={{ flex: 1 }}>
@@ -44,8 +47,16 @@ export default function Coach({ nav }) {
 
             <div ref={bodyRef} style={{ padding: 16, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
               {msgs.map((m, i) => (
-                <div key={i} style={{ padding: '12px 14px', borderRadius: 14, fontSize: '.9rem', lineHeight: 1.5, maxWidth: '90%', alignSelf: m.who === 'me' ? 'flex-end' : 'flex-start', background: m.who === 'me' ? 'var(--plum)' : 'var(--surface-2)', color: m.who === 'me' ? '#fff' : 'var(--ink)', borderBottomRightRadius: m.who === 'me' ? 4 : 14, borderBottomLeftRadius: m.who === 'me' ? 14 : 4 }}>{m.text}</div>
+                <motion.div key={i} initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.2 }}
+                  style={{ padding: '12px 14px', borderRadius: 14, fontSize: '.9rem', lineHeight: 1.5, maxWidth: '90%', alignSelf: m.who === 'me' ? 'flex-end' : 'flex-start', background: m.who === 'me' ? 'var(--plum)' : 'var(--surface-2)', color: m.who === 'me' ? '#fff' : 'var(--ink)', borderBottomRightRadius: m.who === 'me' ? 4 : 14, borderBottomLeftRadius: m.who === 'me' ? 14 : 4 }}>{m.text}</motion.div>
               ))}
+              {typing && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '12px 14px', borderRadius: 14, fontSize: '.9rem', alignSelf: 'flex-start', background: 'var(--surface-2)', color: 'var(--ink-3)', borderBottomLeftRadius: 4, display: 'flex', gap: 4 }} aria-label="Coach is typing">
+                  <span style={{ animation: 'dotPulse 1s infinite' }}>·</span>
+                  <span style={{ animation: 'dotPulse 1s infinite 0.2s' }}>·</span>
+                  <span style={{ animation: 'dotPulse 1s infinite 0.4s' }}>·</span>
+                </motion.div>
+              )}
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, padding: '0 16px 12px' }}>
@@ -62,6 +73,13 @@ export default function Coach({ nav }) {
           </motion.div>
         )}
       </AnimatePresence>
+      <style>{`
+        @keyframes dotPulse { 0%,80%{ opacity:.3;transform:translateY(0) } 40%{ opacity:1;transform:translateY(-4px) } }
+        @media (max-width:560px){
+          .coach-fab{ width:50px !important; height:50px !important; right:14px !important; bottom:14px !important }
+          .coach-panel{ right:14px !important; bottom:80px !important; width:calc(100vw - 28px) !important; max-height:calc(100vh - 110px) !important }
+        }
+      `}</style>
     </>
   )
 }

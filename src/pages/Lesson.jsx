@@ -24,7 +24,7 @@ export default function Lesson() {
   const done = state.completed.includes(sid)
 
   const [reflect, setReflect] = useState(state.reflections[sid] || '')
-  useEffect(() => { setReflect(state.reflections[sid] || ''); window.scrollTo(0, 0) }, [sid])
+  useEffect(() => { setReflect(state.reflections[sid] || ''); window.scrollTo(0, 0) }, [sid, state])
 
   function onQuizResult(ok) {
     update((s) => {

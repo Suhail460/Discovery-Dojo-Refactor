@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { CURRICULUM } from '../data/curriculum.js'
@@ -52,24 +53,22 @@ export function ProgressProvider({ children }) {
   }), [])
 
   /* ---- helpers ---- */
-  const totalScreens = CURRICULUM.reduce((a, l) => a + l.screens.length, 0)
-  const screenId = (lvl, idx) => `${lvl}.${idx}`
-  const levelScreens = (lvl) => CURRICULUM.find((l) => l.id === lvl).screens.length
-  const levelDoneCount = (lvl, s = state) => {
+  const totalScreens = useMemo(() => CURRICULUM.reduce((a, l) => a + l.screens.length, 0), [])
+  const screenId = useCallback((lvl, idx) => `${lvl}.${idx}`, [])
+  const levelScreens = useCallback((lvl) => CURRICULUM.find((l) => l.id === lvl).screens.length, [])
+  const levelDoneCount = useCallback((lvl, s = state) => {
     let c = 0
     for (let i = 0; i < levelScreens(lvl); i++) if (s.completed.includes(screenId(lvl, i))) c++
     return c
-  }
-  const levelDone = (lvl, s = state) => levelDoneCount(lvl, s) === levelScreens(lvl)
-  const maxUnlocked = (s = state) => {
+  }, [levelScreens, screenId, state])
+  const levelDone = useCallback((lvl, s = state) => levelDoneCount(lvl, s) === levelScreens(lvl), [levelDoneCount, levelScreens, state])
+  const maxUnlocked = useCallback((s = state) => {
     let m = 1
     for (let i = 1; i < CURRICULUM.length; i++) { if (levelDone(i, s)) m = i + 1; else break }
     return m
-  }
-  const isUnlocked = (lvl, s = state) => lvl <= maxUnlocked(s)
-  const masteryPct = () => Math.round((state.completed.length / totalScreens) * 100)
+  }, [levelDone, state])
 
-  const todayStr = () => new Date().toISOString().slice(0, 10)
+  const todayStr = useCallback(() => new Date().toISOString().slice(0, 10), [])
 
   const bumpStreak = useCallback(() => {
     setState((s) => {
@@ -79,7 +78,7 @@ export function ProgressProvider({ children }) {
       const streak = s.lastActive === y ? (s.streak || 0) + 1 : 1
       return { ...s, streak, lastActive: t }
     })
-  }, [])
+  }, [todayStr])
 
   const addXP = useCallback((n) => setState((s) => ({ ...s, xp: s.xp + n })), [])
 
@@ -90,19 +89,23 @@ export function ProgressProvider({ children }) {
       BADGES.forEach((b) => { if (!earned.includes(b.id) && b.check(ctx)) earned.push(b.id) })
       return earned.length === s.badges.length ? s : { ...s, badges: earned }
     })
-  }, [])
+  }, [levelDone, maxUnlocked])
 
-  const exportData = () => JSON.stringify(state, null, 2)
   const importData = (json) => {
     try { setState({ ...DEFAULT, ...JSON.parse(json) }); return true } catch { return false }
   }
   const reset = () => setState(DEFAULT)
 
-  const value = useMemo(() => ({
-    state, update, addXP, bumpStreak, checkBadges,
-    screenId, levelScreens, levelDoneCount, levelDone, maxUnlocked, isUnlocked,
-    masteryPct, totalScreens, todayStr, exportData, importData, reset
-  }), [state, update, addXP, bumpStreak, checkBadges])
+  const value = useMemo(() => {
+    const isUnlocked = (lvl, s = state) => lvl <= maxUnlocked(s)
+    const masteryPct = () => Math.round((state.completed.length / totalScreens) * 100)
+    const exportData = () => JSON.stringify(state, null, 2)
+    return {
+      state, update, addXP, bumpStreak, checkBadges,
+      screenId, levelScreens, levelDoneCount, levelDone, maxUnlocked, isUnlocked,
+      masteryPct, totalScreens, todayStr, exportData, importData, reset
+    }
+  }, [state, update, addXP, bumpStreak, checkBadges, levelDone, levelDoneCount, levelScreens, maxUnlocked, screenId, todayStr, totalScreens])
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }
 

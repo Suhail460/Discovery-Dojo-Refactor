@@ -19,7 +19,8 @@ export default function InterviewSim() {
   const [input, setInput] = useState('')
   const [form, setForm] = useState({ name: 'Alex Rivera', age: 34, prof: PERSONA_OPTS.prof[0], industry: PERSONA_OPTS.industry[0], personality: PERSONA_OPTS.personality[0], exp: PERSONA_OPTS.exp[0], pain: 'wastes hours reconciling data across tools', goal: 'look competent and hit deadlines without overtime' })
   const scrollRef = useRef(null)
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, [log])
+  const [replying, setReplying] = useState(false)
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, [log, replying])
 
   function start() {
     const p = { ...form, emoji: PERSONA_OPTS.emoji[form.prof] || '🧑' }
@@ -40,8 +41,14 @@ export default function InterviewSim() {
     if (/\bwhy\b/i.test(q)) nf.why++
     if (/thank|appreciate|makes sense|got it|interesting|tell me more/i.test(q)) nf.rapport++
     setFlags(nf)
-    setLog((l) => [...l, { who: 'me', text: q, tag: a.tag }, { who: 'them', text: reply(q, a, persona) }])
-    setTurns((t) => t + 1); setInput('')
+    setLog((l) => [...l, { who: 'me', text: q, tag: a.tag }])
+    setInput('')
+    setReplying(true)
+    setTimeout(() => {
+      setLog((l) => [...l, { who: 'them', text: reply(q, a, persona) }])
+      setReplying(false)
+      setTurns((t) => t + 1)
+    }, 500 + Math.random() * 400)
   }
 
   function end() {
@@ -108,6 +115,13 @@ export default function InterviewSim() {
                   <p>Start an interview to begin. Tip: open with &apos;Tell me about the last time you...&apos; instead of pitching anything.</p>
                 </div>
               )}
+              {replying && (
+                <div style={{ maxWidth: '78%', padding: '12px 16px', borderRadius: 16, fontSize: '.95rem', alignSelf: 'flex-start', background: 'var(--surface-2)', color: 'var(--ink-3)', borderBottomLeftRadius: 5, display: 'flex', gap: 4 }} aria-label="Persona is replying">
+                  <span style={{ animation: 'dotPulse 1s infinite' }}>·</span>
+                  <span style={{ animation: 'dotPulse 1s infinite .2s' }}>·</span>
+                  <span style={{ animation: 'dotPulse 1s infinite .4s' }}>·</span>
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', gap: 10, padding: 16, borderTop: '1px solid var(--line)' }}>
               <input value={input} disabled={!active} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && ask()}
@@ -119,7 +133,10 @@ export default function InterviewSim() {
           {score && <Scorecard d={score} onReset={() => { setScore(null); setPersona(null); setLog([]) }} />}
         </div>
       </div>
-      <style>{`@media (max-width:900px){ .sim-grid{ grid-template-columns:1fr !important } }`}</style>
+      <style>{`
+        @media (max-width:900px){ .sim-grid{ grid-template-columns:1fr !important } }
+        @keyframes dotPulse { 0%,80%{ opacity:.3;transform:translateY(0) } 40%{ opacity:1;transform:translateY(-4px) } }
+      `}</style>
     </div>
   )
 }

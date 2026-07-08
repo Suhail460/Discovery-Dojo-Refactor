@@ -1,4 +1,4 @@
-export default function Card({ children, padding = 24, hover, style, className, onClick, ...rest }) {
+export default function Card({ children, padding = 24, style, className, onClick, ...rest }) {
   return (
     <div
       onClick={onClick}

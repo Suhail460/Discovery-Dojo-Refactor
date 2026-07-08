@@ -1,169 +1,153 @@
 # Discovery Dojo
 
-An interactive Product Discovery learning platform. 15 levels, a live customer-interview simulator, an exercise generator, rapid challenges, a capstone project, an AI coach, gamification, and a login screen.
+[![CI](https://github.com/anomalyco/discovery-dojo/actions/workflows/ci.yml/badge.svg)](https://github.com/anomalyco/discovery-dojo/actions/workflows/ci.yml)
+[![Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black)](https://discoverydojo.app)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-Built with **Vite + React + Tailwind CSS + Framer Motion + Mermaid**. Fully componentized and data-driven so you can extend it without rewriting UI.
+**Master Product Discovery — one level, one interview, one scenario at a time.**
+
+Discovery Dojo is an interactive Product Discovery learning platform. 15 curriculum levels, a live AI-powered customer interview simulator, an endless scenario generator, rapid-fire challenge drills, a capstone project, and an AI coach — all wrapped in a polished, responsive SPA.
+
+Built with **React 18 + Vite + Framer Motion + Mermaid + OKLCH design tokens**. Zero backend required for demo mode. Swap in Firebase / Clerk / Supabase for real auth and cross-device sync.
 
 ---
 
-## 1. Run it locally (step by step)
+## Features
 
-You need **Node.js 18+** installed. Check with `node -v`. If you don't have it, grab it from https://nodejs.org (the LTS version).
+- **15 levels** of product discovery curriculum — from opportunity trees to experiment design
+- **Live interview simulator** — build a customer persona, interview them, get scored on your questioning technique
+- **Exercise generator** — randomized discovery briefs to practice against
+- **Discovery challenges** — quick-fire single-question drills
+- **Capstone project** — 9-stage end-to-end discovery with feedback report
+- **AI Coach "Mei"** — Socratic mentor that nudges your thinking
+- **Gamification** — XP, streaks, badges, skill tree, weak/strong topic tracking
+- **Dark mode**, progress export/import, per-account localStorage persistence
+- **Responsive** — mobile drawer sidebar, touch-friendly targets
+- **Accessible** — focus-visible, ARIA labels, reduced-motion support, semantic HTML
+- **SEO** — per-page meta tags via react-helmet-async, sitemap, robots.txt
 
-1. Put all these files into one folder, keeping the exact structure below.
-2. Open a terminal in that folder.
-3. Install dependencies (one time):
-   ```bash
-   npm install
-   ```
-4. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-5. It prints a URL like `http://localhost:5173`. Open it. That's the app, with hot-reload: edit a file, the browser updates instantly.
+---
 
-To make a production build:
+## Quick start
+
 ```bash
-npm run build      # outputs to /dist
-npm run preview    # preview the built version
+npm install
+npm run dev
+# Opens http://localhost:5173
 ```
 
-The `/dist` folder is a static site. You can host it free on Netlify, Vercel, GitHub Pages, or Cloudflare Pages by dragging the folder in or connecting the repo.
+Build for production:
+
+```bash
+npm run build       # outputs to /dist
+npm run preview     # preview the build
+```
+
+The `/dist` folder is a static site — deploy to Vercel, Netlify, Cloudflare Pages, or any static host.
 
 ---
 
-## 2. Folder structure
+## Project structure
 
 ```
-discovery-dojo/
-â”œâ”€ index.html                 # HTML entry (loads fonts + React)
-â”œâ”€ package.json               # dependencies + scripts
-â”œâ”€ vite.config.js             # Vite setup
-â”œâ”€ tailwind.config.js         # Tailwind + design tokens
-â”œâ”€ postcss.config.js
-â”œâ”€ .gitignore
-â””â”€ src/
-   â”œâ”€ main.jsx                # mounts React, wraps app in providers
-   â”œâ”€ App.jsx                 # routing (view state), layout shell, toasts
-   â”œâ”€ index.css               # OKLCH design system + base styles
-   â”œâ”€ context/
-   â”‚  â”œâ”€ AuthContext.jsx      # LOGIN CONTROL lives here (read section 4)
-   â”‚  â””â”€ ThemeContext.jsx     # light/dark theme
-   â”œâ”€ hooks/
-   â”‚  â””â”€ useStore.jsx         # per-user progress, XP, streak, badges (localStorage)
-   â”œâ”€ data/
-   â”‚  â”œâ”€ curriculum.js        # ALL 15 levels of content (edit here to add lessons)
-   â”‚  â””â”€ gamedata.js          # badges, challenges, generator pools, personas, capstone stages
-   â”œâ”€ components/
-   â”‚  â”œâ”€ LoginScreen.jsx      # the login UI (Google / GitHub / Apple / email / guest)
-   â”‚  â”œâ”€ Sidebar.jsx
-   â”‚  â”œâ”€ TopBar.jsx           # XP/streak chips, theme toggle, account menu, export/import
-   â”‚  â”œâ”€ Coach.jsx            # AI coach (rule-based, swappable for an LLM)
-   â”‚  â”œâ”€ Quiz.jsx             # mcq / true-false / ordering / matching engine
-   â”‚  â””â”€ Mermaid.jsx          # diagram renderer
-   â””â”€ views/
-      â”œâ”€ Dashboard.jsx        # home + progress map
-      â”œâ”€ Lesson.jsx           # renders any lesson screen from curriculum.js
-      â”œâ”€ InterviewSim.jsx     # customer interview simulator + scorecard
-      â”œâ”€ Generator.jsx        # randomized scenario generator
-      â”œâ”€ Challenges.jsx       # rapid drills
-      â”œâ”€ Capstone.jsx         # 9-stage project + feedback report
-      â””â”€ Badges.jsx           # skill tree + badges
+src/
+├── main.jsx                        # Entry point: providers + Analytics
+├── styles/index.css                # OKLCH design system + responsive utilities
+├── router/
+│   └── AppRouter.jsx               # Lazy routes + ErrorBoundary + Suspense
+├── context/
+│   ├── AuthContext.jsx             # Login control (demo / Firebase / Clerk / Supabase)
+│   ├── ThemeContext.jsx            # Light/dark toggle
+│   └── ToastContext.jsx            # Global toast notifications
+├── hooks/
+│   ├── useStore.jsx                # Per-user progress (XP, completed, badges, streak)
+│   └── useNavigation.js           # React Router wrapper (go, openLevel, gotoScreen)
+├── data/
+│   ├── curriculum.js               # All 15 levels of content
+│   └── gamedata.js                 # Badges, challenges, generator pools, personas
+├── pages/
+│   ├── Dashboard.jsx               # Home: metrics, quick actions, learning path
+│   ├── Lesson.jsx                  # Renders any screen from curriculum.js
+│   ├── InterviewSim.jsx            # Customer interview simulator + scorecard
+│   ├── Generator.jsx               # Randomized scenario generator
+│   ├── Challenges.jsx              # Rapid-fire drills
+│   ├── Capstone.jsx                # 9-stage project + feedback report
+│   ├── Badges.jsx                  # Skill tree + earned badges
+│   ├── LoginScreen.jsx             # Auth gate (social / email / guest)
+│   └── NotFound.jsx                # 404 page
+└── components/
+    ├── common/
+    │   ├── Button.jsx, Card.jsx, Input.jsx, Spinner.jsx
+    │   ├── Badge.jsx, Progress.jsx, Skeleton.jsx
+    │   ├── SEO.jsx                  # Per-page meta tags
+    │   └── ErrorBoundary.jsx        # Graceful crash fallback
+    ├── layout/
+    │   ├── AppLayout.jsx            # Sidebar + TopBar + Main + Coach shell
+    │   ├── Sidebar.jsx              # Navigation + level list
+    │   └── TopBar.jsx               # XP/streak chips, theme toggle, account menu
+    ├── coach/
+    │   └── Coach.jsx                # AI Coach Mei (rule-based, swappable for LLM)
+    ├── quiz/
+    │   └── Quiz.jsx                 # MCQ / true-false / ordering / matching engine
+    └── diagrams/
+        └── Mermaid.jsx              # Mermaid diagram renderer
 ```
 
 ---
 
-## 3. How to add or edit content (no coding)
+## Adding content (no component changes)
 
-**Lessons** live entirely in `src/data/curriculum.js`. Each level is an object with a `screens` array. To add a screen, copy an existing screen object and edit the fields. The lesson view renders every field automatically:
+**Lessons** — edit `src/data/curriculum.js`. Each level has a `screens[]` array. Fields: `title`, `lead`, `prose`, `analogy`, `mermaid`, `quiz`, `reflection`, `hint`, `launch`, `example`, `mistakes`.
 
-- `title`, `lead`, `time`, `diff` (1-3), `objectives[]`
-- `prose` (HTML string), `analogy {title, body}`
-- `mermaid {code, cap}` for a diagram
-- `example {items[]}`, `mistakes[]`, `reflection`, `hint`
-- `quiz` with `type: 'mcq' | 'truefalse' | 'order' | 'match'`
-- `launch {view, label, icon}` to link to a practice tool
-
-**Badges, challenges, generator scenarios, personas, capstone stages** all live in `src/data/gamedata.js`. Add array entries and they appear in the UI. No component changes needed.
+**Badges, challenges, generator pools, personas, capstone stages** — edit `src/data/gamedata.js`. Add array entries and they appear automatically.
 
 ---
 
-## 4. Controlling login (important)
+## Login & auth
 
-Login is controlled in **one file**: `src/context/AuthContext.jsx`. There's a single switch at the top:
+Controlled entirely in `src/context/AuthContext.jsx`. The switch:
 
 ```js
-export const AUTH_MODE = 'demo'
+export const AUTH_MODE = 'demo'   // 'demo' | 'firebase' | 'clerk' | 'supabase'
 ```
 
-### Demo mode (default, zero setup)
-Out of the box, `AUTH_MODE = 'demo'`. Accounts are stored in the browser (localStorage). Google/GitHub/Apple buttons, email signup, and guest mode all work immediately for local use and demos. Nothing to configure. Progress is saved per account, keyed by user id, so multiple people on one machine stay separate.
+**Demo mode** (default) — accounts live in localStorage, all buttons work immediately. Zero setup.
 
-This mode is NOT real security. It's for learning, demos, and single-machine use. Anyone with the browser can see the local accounts.
-
-### Turning on REAL login (Google / GitHub for real)
-Real social login needs an auth provider (a service that verifies identity). The app is already wired so you only change `AuthContext.jsx`, nothing else. Pick one:
-
-**Option A â€” Clerk (easiest, hosted UI):**
-1. `npm install @clerk/clerk-react`
-2. Create a free project at clerk.com, copy your Publishable Key.
-3. Wrap the app in `<ClerkProvider>` in `main.jsx`, and in `AuthContext.jsx` replace the demo function bodies with Clerk's `useSignIn` / `useUser`. Set `AUTH_MODE = 'clerk'`.
-4. Enable Google/GitHub in the Clerk dashboard (toggles, no code).
-
-**Option B â€” Firebase Auth (Google's free tier):**
-1. `npm install firebase`
-2. Create a Firebase project, enable Google + GitHub sign-in providers in the console.
-3. In `AuthContext.jsx`, initialize Firebase and replace:
-   - `loginWithProvider` â†’ `signInWithPopup(auth, new GoogleAuthProvider())`
-   - `loginWithEmail` â†’ `signInWithEmailAndPassword(...)`
-   - `signup` â†’ `createUserWithEmailAndPassword(...)`
-   - `logout` â†’ `signOut(auth)`
-   Set `AUTH_MODE = 'firebase'`.
-
-**Option C â€” Supabase (auth + database together):**
-1. `npm install @supabase/supabase-js`
-2. Create a Supabase project, enable OAuth providers.
-3. Swap the same four functions for `supabase.auth.signInWithOAuth(...)` etc. Set `AUTH_MODE = 'supabase'`.
-
-The rest of the app (`useAuth().user`, progress keyed by `user.id`, sign-out) keeps working because it never talks to the provider directly, only to this context. Keep secret keys in a `.env` file (already gitignored), never commit them.
-
-### Making progress sync across devices
-Right now progress is per-browser (see `src/hooks/useStore.jsx`). Once you have real auth + a database (Firebase/Supabase), swap the `localStorage` load/save calls in `useStore.jsx` for a row-per-user read/write. That single change makes progress follow the user across devices.
+**Real auth** — set `AUTH_MODE`, install the provider's SDK, replace the 4 function bodies (`loginWithProvider`, `loginWithEmail`, `signup`, `logout`). Nothing else changes.
 
 ---
 
-## 5. Advanced options already included
+## Code quality
 
-- **Dark mode** (top bar toggle, respects OKLCH design tokens).
-- **Export / Import progress** (account menu in the top bar) â€” back up or move your data as JSON.
-- **Guest mode** for zero-friction trials.
-- **Per-account progress** with XP, streaks, mastery %, weak/strong topic tracking.
-- **Framer Motion** page and element transitions.
-- **Responsive**: sidebar collapses to a drawer on mobile, login panel stacks.
-
----
-
-## 6. Ideas to add later (roadmap)
-
-Things that would take this from great to commercial-grade:
-
-1. **Real backend + database** (Supabase is the fastest path) so progress syncs across devices and you can see analytics.
-2. **LLM-powered AI coach and interview simulator.** Right now both are smart rule-based engines. Point `Coach.jsx`'s `coachReply()` and `InterviewSim.jsx`'s `reply()` at an LLM API for open-ended, truly dynamic conversations. Keep the scoring rubric; let the model generate the persona's answers.
-3. **Real leaderboard** (needs the backend) instead of a placeholder.
-4. **Spaced repetition**: resurface quiz questions from weak topics on a schedule.
-5. **Shareable capstone report** (export the feedback report as a PDF or public link).
-6. **More content**: the data-driven engine means new levels, case studies, and challenge packs are just data entries.
-7. **Team / cohort mode**: assign levels, track a group, add comments.
-8. **Accessibility pass**: full keyboard nav, ARIA labels, focus management on the modal/coach.
-9. **Analytics**: track where learners drop off to improve the curriculum.
-10. **Tests**: add Vitest + React Testing Library once the structure stabilizes.
+```bash
+npm run lint          # ESLint (0 errors, 0 warnings)
+npm run build         # Vite build (no warnings)
+npm run format        # Prettier
+```
 
 ---
 
-## 7. Tech notes
+## Tech stack
 
-- Colors use **OKLCH** custom properties in `index.css`. Change the `--hue` and accent values there to re-theme the whole app.
-- Mermaid is imported as an npm package and re-renders on theme change.
-- No secret keys are needed for demo mode. For real auth, use a `.env` file (gitignored).
+| Layer | Choice |
+|-------|--------|
+| Framework | React 18 |
+| Build | Vite 8 |
+| Routing | React Router v7 (lazy routes) |
+| Animation | Framer Motion |
+| Diagram | Mermaid 11 |
+| Icons | Lucide React |
+| SEO | react-helmet-async |
+| Analytics | @vercel/analytics |
+| Design tokens | OKLCH custom properties |
+| CSS utility | Tailwind 3 (minimal, only base layer) |
+| Auth | Demo mode (swap for Firebase/Clerk/Supabase) |
+| Persistence | localStorage (swap for database) |
+| Lint | ESLint 9 + react-hooks + react-refresh |
+| Format | Prettier 3 |
 
-Happy discovering.
+---
+
+## License
+
+MIT
