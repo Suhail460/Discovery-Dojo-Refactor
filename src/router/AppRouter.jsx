@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import LoginScreen from '../pages/LoginScreen.jsx'
 import AppLayout from '../components/layout/AppLayout.jsx'
+import ErrorBoundary from '../components/common/ErrorBoundary.jsx'
 import { Spinner } from '../components/common/index.js'
 
 const Dashboard = lazy(() => import('../pages/Dashboard.jsx'))
@@ -35,14 +36,14 @@ export default function AppRouter() {
       <Routes>
         <Route element={<AuthGuard />}>
           <Route element={<AppLayout />}>
-            <Route index element={<Suspense fallback={<SuspenseFallback />}><Dashboard /></Suspense>} />
-            <Route path="level/:id/:screen?" element={<Suspense fallback={<SuspenseFallback />}><Lesson /></Suspense>} />
-            <Route path="interview" element={<Suspense fallback={<SuspenseFallback />}><InterviewSim /></Suspense>} />
-            <Route path="generator" element={<Suspense fallback={<SuspenseFallback />}><Generator /></Suspense>} />
-            <Route path="challenges" element={<Suspense fallback={<SuspenseFallback />}><Challenges /></Suspense>} />
-            <Route path="capstone" element={<Suspense fallback={<SuspenseFallback />}><Capstone /></Suspense>} />
-            <Route path="badges" element={<Suspense fallback={<SuspenseFallback />}><Badges /></Suspense>} />
-            <Route path="*" element={<Suspense fallback={<SuspenseFallback />}><NotFound /></Suspense>} />
+            <Route index element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Dashboard /></Suspense></ErrorBoundary>} />
+            <Route path="level/:id/:screen?" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Lesson /></Suspense></ErrorBoundary>} />
+            <Route path="interview" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><InterviewSim /></Suspense></ErrorBoundary>} />
+            <Route path="generator" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Generator /></Suspense></ErrorBoundary>} />
+            <Route path="challenges" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Challenges /></Suspense></ErrorBoundary>} />
+            <Route path="capstone" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Capstone /></Suspense></ErrorBoundary>} />
+            <Route path="badges" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Badges /></Suspense></ErrorBoundary>} />
+            <Route path="*" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><NotFound /></Suspense></ErrorBoundary>} />
           </Route>
         </Route>
       </Routes>
