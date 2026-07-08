@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, X, ArrowUp } from 'lucide-react'
-import { CURRICULUM } from '../data/curriculum.js'
+import { CURRICULUM } from '../../data/curriculum.js'
 
 /* Socratic coach. Rule-based, context-aware replies. It nudges rather than
    hands over answers. Swap coachReply() for an LLM API call to go live. */

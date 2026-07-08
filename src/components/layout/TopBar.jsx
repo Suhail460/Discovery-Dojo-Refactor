@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Menu, Zap, Flame, Gauge, Moon, Sun, LogOut, Download, Upload } from 'lucide-react'
-import { CURRICULUM } from '../data/curriculum.js'
-import { useStore } from '../hooks/useStore.jsx'
-import { useTheme } from '../context/ThemeContext.jsx'
-import { useAuth } from '../context/AuthContext.jsx'
+import { CURRICULUM } from '../../data/curriculum.js'
+import { useStore } from '../../hooks/useStore.jsx'
+import { useTheme } from '../../context/ThemeContext.jsx'
+import { useAuth } from '../../context/AuthContext.jsx'
 
 export default function TopBar({ nav, onMenu }) {
   const { state, masteryPct, exportData, importData } = useStore()

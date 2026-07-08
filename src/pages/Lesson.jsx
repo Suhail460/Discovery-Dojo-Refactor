@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { Layers, Signal, Clock, Hash, Target, Lightbulb, GitBranch, Building2, CornerDownRight, AlertTriangle, XCircle, Pencil, Brain, Save, ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { CURRICULUM } from '../data/curriculum.js'
 import { useStore } from '../hooks/useStore.jsx'
-import Mermaid from '../components/Mermaid.jsx'
-import Quiz from '../components/Quiz.jsx'
+import Mermaid from '../components/diagrams/Mermaid.jsx'
+import Quiz from '../components/quiz/Quiz.jsx'
 
 const DIFF = ['', 'Beginner', 'Intermediate', 'Advanced']
 const CONF = ['Shaky', 'Getting it', 'Solid', 'Could teach it']

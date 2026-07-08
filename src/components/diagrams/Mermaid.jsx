@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import mermaid from 'mermaid'
-import { useTheme } from '../context/ThemeContext.jsx'
+import { useTheme } from '../../context/ThemeContext.jsx'
 
 let idc = 0
 

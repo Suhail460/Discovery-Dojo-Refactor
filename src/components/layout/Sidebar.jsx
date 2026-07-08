@@ -1,6 +1,6 @@
 import { Compass, LayoutDashboard, Mic, Dices, Swords, Flag, Award, Lock, Check, RotateCcw } from 'lucide-react'
-import { CURRICULUM } from '../data/curriculum.js'
-import { useStore } from '../hooks/useStore.jsx'
+import { CURRICULUM } from '../../data/curriculum.js'
+import { useStore } from '../../hooks/useStore.jsx'
 
 const NAV = [
   { view: 'home', label: 'Dashboard', icon: LayoutDashboard },
