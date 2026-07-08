@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import * as Icons from 'lucide-react'
 import { Swords, PartyPopper, Lightbulb } from 'lucide-react'
+import SEO from '../components/common/SEO.jsx'
 import { CHALLENGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { toPascal } from '../utils/helpers.js'
@@ -20,6 +21,7 @@ export default function Challenges() {
 
   return (
     <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <SEO title="Discovery Challenges" description="Quick-fire drills on interview questions, biases, research methods, and prioritization." />
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}><span className="pill pill-lvl"><Swords size={13} /> Rapid drills</span></div>
         <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Discovery Challenges</h1>

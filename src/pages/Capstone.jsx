@@ -3,6 +3,7 @@ import * as Icons from 'lucide-react'
 import { Flag, Save, Award, Check } from 'lucide-react'
 import { CAP_STAGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
+import SEO from '../components/common/SEO.jsx'
 import { toPascal } from '../utils/helpers.js'
 import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
@@ -41,6 +42,7 @@ export default function Capstone() {
 
   return (
     <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <SEO title="Capstone Project" description="Run a complete product discovery end-to-end. Earn your Practitioner badge." />
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <span className="pill pill-lvl"><Flag size={13} /> Level 15 · Capstone</span>

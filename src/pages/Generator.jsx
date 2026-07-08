@@ -3,6 +3,7 @@ import { Dices, Infinity as Inf, Shuffle, Mic, ListChecks } from 'lucide-react'
 import { GEN } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { pick, cap } from '../utils/helpers.js'
+import SEO from '../components/common/SEO.jsx'
 import { useNavigation } from '../hooks/useNavigation.js'
 
 export default function Generator() {
@@ -17,6 +18,7 @@ export default function Generator() {
 
   return (
     <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <SEO title="Exercise Generator" description="Generate randomized product discovery scenarios. Practice assumptions, research plans, and experiment design." />
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <span className="pill pill-lvl"><Dices size={13} /> Practice tool</span>

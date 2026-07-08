@@ -3,6 +3,7 @@ import { Layers, Signal, Clock, Hash, Target, Lightbulb, GitBranch, Building2, C
 import { CURRICULUM } from '../data/curriculum.js'
 import { useStore } from '../hooks/useStore.jsx'
 import Mermaid from '../components/diagrams/Mermaid.jsx'
+import SEO from '../components/common/SEO.jsx'
 import Quiz from '../components/quiz/Quiz.jsx'
 import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
@@ -63,6 +64,7 @@ export default function Lesson() {
 
   return (
     <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <SEO title={`Level ${lvl.id}: ${sc.title}`} description={sc.lead} />
       {/* Head */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>

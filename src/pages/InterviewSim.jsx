@@ -3,6 +3,7 @@ import { Mic, Infinity as Inf, Play, Flag, Send, MessagesSquare, MicOff, RotateC
 import { PERSONA_OPTS } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { clamp, pick, cap } from '../utils/helpers.js'
+import SEO from '../components/common/SEO.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 
 /* Live customer interview simulator with question analysis + scorecard. */
@@ -70,6 +71,7 @@ export default function InterviewSim() {
   const disabled = active
   return (
     <div className="fade-in" style={{ maxWidth: 1180, margin: '0 auto' }}>
+      <SEO title="Interview Simulator" description="Practice customer interviews with a live AI-powered persona. Get scored on your questioning technique." />
       <Head />
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,320px) 1fr', gap: 24 }} className="sim-grid">
         {/* persona builder */}

@@ -1,6 +1,7 @@
 import { Award, CheckCircle2, RotateCcw, ThumbsUp, AlertCircle } from 'lucide-react'
 import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
+import SEO from '../components/common/SEO.jsx'
 import { useStore } from '../hooks/useStore.jsx'
 import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
@@ -14,6 +15,7 @@ export default function Badges() {
 
   return (
     <div className="fade-in" style={{ maxWidth: 1180, margin: '0 auto' }}>
+      <SEO title="Skill Tree & Badges" description="Track your badges, strengths, and weak topics across all 15 levels of product discovery." />
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}><span className="pill pill-lvl"><Award size={13} /> Progress</span></div>
         <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Skill tree &amp; badges</h1>

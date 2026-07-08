@@ -4,6 +4,7 @@ import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import SEO from '../components/common/SEO.jsx'
 import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
 
@@ -21,6 +22,7 @@ export default function Dashboard() {
 
   return (
     <div className="fade-in" style={{ maxWidth: 1180, margin: '0 auto' }}>
+      <SEO title="Dashboard" description="Track your product discovery learning progress, XP, streak, and badges." />
       {/* Hero */}
       <div style={{ borderRadius: 30, padding: 'clamp(28px,5vw,52px)', position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, var(--plum) 0%, var(--accent) 120%)', color: '#fff', marginBottom: 32, boxShadow: 'var(--sh-lg)' }}>
         <div style={{ position: 'absolute', right: -80, top: -80, width: 340, height: 340, borderRadius: '50%', background: 'oklch(1 0 0 / 0.10)' }} />
