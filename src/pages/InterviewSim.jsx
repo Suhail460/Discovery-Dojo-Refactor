@@ -3,9 +3,11 @@ import { Mic, Infinity as Inf, Play, Flag, Send, MessagesSquare, MicOff, RotateC
 import { PERSONA_OPTS } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { clamp, pick, cap } from '../utils/helpers.js'
+import { useToast } from '../context/ToastContext.jsx'
 
 /* Live customer interview simulator with question analysis + scorecard. */
-export default function InterviewSim({ toast }) {
+export default function InterviewSim() {
+  const { toast } = useToast()
   const { update, addXP, bumpStreak, checkBadges } = useStore()
   const [persona, setPersona] = useState(null)
   const [active, setActive] = useState(false)

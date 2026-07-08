@@ -4,10 +4,14 @@ import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useNavigation } from '../hooks/useNavigation.js'
+import { useToast } from '../context/ToastContext.jsx'
 
 const DIFF = ['', 'Beginner', 'Intermediate', 'Advanced']
 
-export default function Dashboard({ nav }) {
+export default function Dashboard() {
+  const { toast } = useToast()
+  const nav = useNavigation(toast)
   const { state, masteryPct, levelDone, levelDoneCount, levelScreens, isUnlocked, maxUnlocked } = useStore()
   const { user } = useAuth()
   const mu = maxUnlocked()

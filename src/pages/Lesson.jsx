@@ -4,11 +4,15 @@ import { CURRICULUM } from '../data/curriculum.js'
 import { useStore } from '../hooks/useStore.jsx'
 import Mermaid from '../components/diagrams/Mermaid.jsx'
 import Quiz from '../components/quiz/Quiz.jsx'
+import { useNavigation } from '../hooks/useNavigation.js'
+import { useToast } from '../context/ToastContext.jsx'
 
 const DIFF = ['', 'Beginner', 'Intermediate', 'Advanced']
 const CONF = ['Shaky', 'Getting it', 'Solid', 'Could teach it']
 
-export default function Lesson({ nav, toast }) {
+export default function Lesson() {
+  const { toast } = useToast()
+  const nav = useNavigation(toast)
   const store = useStore()
   const { state, update, addXP, bumpStreak, checkBadges, screenId, levelDone } = store
   const lvl = CURRICULUM.find((x) => x.id === nav.current.level)

@@ -4,8 +4,12 @@ import { Flag, Save, Award, Check } from 'lucide-react'
 import { CAP_STAGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { toPascal } from '../utils/helpers.js'
+import { useNavigation } from '../hooks/useNavigation.js'
+import { useToast } from '../context/ToastContext.jsx'
 
-export default function Capstone({ nav, toast }) {
+export default function Capstone() {
+  const nav = useNavigation()
+  const { toast } = useToast()
   const { state, update, checkBadges } = useStore()
   const [draft, setDraft] = useState(() => ({ ...state.capstone }))
   const [report, setReport] = useState(null)

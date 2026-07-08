@@ -2,8 +2,12 @@ import { Award, CheckCircle2, RotateCcw, ThumbsUp, AlertCircle } from 'lucide-re
 import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
+import { useNavigation } from '../hooks/useNavigation.js'
+import { useToast } from '../context/ToastContext.jsx'
 
-export default function Badges({ nav }) {
+export default function Badges() {
+  const { toast } = useToast()
+  const nav = useNavigation(toast)
   const { state, levelDone, levelDoneCount, levelScreens, isUnlocked } = useStore()
   const got = state.badges.length
   const weak = [...new Set(state.weak)], strong = [...new Set(state.strong)]

@@ -3,8 +3,10 @@ import { Dices, Infinity as Inf, Shuffle, Mic, ListChecks } from 'lucide-react'
 import { GEN } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { pick, cap } from '../utils/helpers.js'
+import { useNavigation } from '../hooks/useNavigation.js'
 
-export default function Generator({ nav }) {
+export default function Generator() {
+  const nav = useNavigation()
   const { update, addXP, bumpStreak, checkBadges } = useStore()
   const [g, setG] = useState(null)
 
