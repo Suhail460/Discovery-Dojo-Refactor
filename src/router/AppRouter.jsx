@@ -19,13 +19,12 @@ const NotFound = lazy(() => import('../pages/NotFound.jsx'))
 function SuspenseFallback() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '40px clamp(16px,4vw,40px)', maxWidth: 900, margin: '0 auto' }}>
-      <Skeleton h={36} w="60%" />
-      <Skeleton h={18} w="80%" />
+      <Skeleton variant="title" width="60%" height={36} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
-        <Skeleton h={120} /><Skeleton h={120} /><Skeleton h={120} />
+        <Skeleton variant="card" height={120} /><Skeleton variant="card" height={120} /><Skeleton variant="card" height={120} />
       </div>
-      <Skeleton h={200} />
-      <Skeleton h={80} />
+      <Skeleton variant="card" height={200} />
+      <Skeleton height={80} />
     </div>
   )
 }

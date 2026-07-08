@@ -14,14 +14,14 @@ export default function AdminDashboard() {
   return (
     <div className="fade-in" style={{ maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <Shield size={24} color="var(--plum)" />
+        <Shield size={24} color="var(--primary)" />
         <h1 style={{ fontSize: '1.6rem' }}>Admin dashboard</h1>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
         {TABS.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, border: '1px solid ' + (tab === t.id ? 'var(--plum-2)' : 'var(--line)'), background: tab === t.id ? 'var(--plum-wash)' : 'var(--surface)', color: tab === t.id ? 'var(--plum)' : 'var(--ink-2)', fontWeight: 700, fontSize: '.88rem', cursor: 'pointer' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, border: '1px solid ' + (tab === t.id ? 'var(--primary)' : 'var(--line)'), background: tab === t.id ? 'var(--primary-wash)' : 'var(--surface)', color: tab === t.id ? 'var(--primary)' : 'var(--ink-2)', fontWeight: 700, fontSize: '.88rem', cursor: 'pointer' }}>
             <t.icon size={18} /> {t.label}
           </button>
         ))}
@@ -45,7 +45,7 @@ function AdminLessons() {
       <div style={{ display: 'grid', gap: 12 }}>
         {Array.from({ length: 15 }, (_, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 18px', borderRadius: 14, border: '1px solid var(--line)', background: 'var(--surface-2)' }}>
-            <span style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--plum-wash)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: '.82rem', color: 'var(--plum)' }}>{i + 1}</span>
+            <span style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--primary-wash)', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: '.82rem', color: 'var(--primary)' }}>{i + 1}</span>
             <span style={{ flex: 1, fontWeight: 600 }}>Level {i + 1}</span>
             <span style={{ fontSize: '.78rem', color: 'var(--ink-3)' }}>{Math.floor(Math.random() * 8 + 3)} screens</span>
             <button style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid var(--line)', background: 'var(--surface)', cursor: 'pointer', fontSize: '.78rem' }}>Edit</button>

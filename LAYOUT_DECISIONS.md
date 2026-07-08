@@ -1,0 +1,85 @@
+# Layout Decisions — Discovery Dojo
+
+## Page Structure (Desktop ≥1000px)
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  TOPBAR                                                      │
+│  [Menu] Breadcrumb · XP · Streak · Mastery · 🔔 · 🌙 · [U] │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌───────────────────────────────┬────────────────────────┐  │
+│  │  HERO (flex: 1.3)            │  HERO (flex: 1)        │  │
+│  │  ┌─────────────────────────┐ │  ┌──────┐  ┌────────┐ │  │
+│  │  │ Welcome back, Suhail 👋 │ │  │Streak│  │Mastery │ │  │
+│  │  │ Motivational subtitle   │ │  │Float │  │ Float  │ │  │
+│  │  │ [Continue] [Interview]  │ │  └──────┘  └────────┘ │  │
+│  │  └─────────────────────────┘ │  ┌──────────────────┐  │  │
+│  │  🏆 XP today  📈 +12%       │  │  XP badge float  │  │  │
+│  └───────────────────────────────┴──┴──────────────────┴──┘  │
+│                                                              │
+│  ┌──────────┬──────────┬──────────┬──────────┐              │
+│  │  XP      │  Levels  │  Badges  │  Mastery │              │
+│  │  1,240   │  5/15    │  3/12    │  42%     │              │
+│  │  ████▌   │  ██░░    │  ██░░    │  ████░░  │              │
+│  │  +124/w  │  +4/w    │  +2/w    │  +6%/w   │              │
+│  └──────────┴──────────┴──────────┴──────────┘              │
+│                                                              │
+│  ┌───────────────────────────────┬────────────────────────┐  │
+│  │  CONTINUE LEARNING            │  DAILY GOAL            │  │
+│  │  ┌─────────────────────────┐  │  ┌──────────────────┐  │  │
+│  │  │ 🎯 Level 5: Interviews  │  │  │ Today's Goal     │  │  │
+│  │  │ Progress: ████████░░ 80%│  │  │ ████████░░░░ 60% │  │  │
+│  │  │ [▶ Continue]   ○ 80%   │  │  │ Great work!      │  │  │
+│  │  └─────────────────────────┘  │  └──────────────────┘  │  │
+│  ├───────────────────────────────┤                         │  │
+│  │  LEARNING PATH                │  ┌──────────────────┐  │  │
+│  │  ● ┌─────────────────────┐    │  │ Quick Actions    │  │  │
+│  │  │ │ 1. Intro      [Start]│   │  │ [Interview]      │  │  │
+│  │  ● ├─────────────────────┤    │  │ [Generator]      │  │  │
+│  │  │ │ 2. Discovery  [80%] │   │  │ [Challenges]     │  │  │
+│  │  ● ├─────────────────────┤    │  ├──────────────────┤  │  │
+│  │  │ │ 3. Interviews [40%] │   │  │ Weekly Chart     │  │  │
+│  │  ● ├─────────────────────┤    │  │ █ █ █ █ ▃ ▂ ▁   │  │  │
+│  │  │ │ 4. Testing   [Lock] │   │  ├──────────────────┤  │  │
+│  │  └─┴─────────────────────┘    │  │ Next Badge       │  │  │
+│  │                               │  │ AI Recommendation│  │  │
+│  │                               │  │ Upcoming Miles.  │  │  │
+│  └───────────────────────────────┴──┴──────────────────┴──┘  │
+│                                                              │
+│  ┌────────────┬────────────┬────────────┬────────────┐      │
+│  │ Rec:       │ Rec:       │ Rec:       │ Rec:       │      │
+│  │ Continue   │ Interview  │ Generator  │ Challenges │      │
+│  └────────────┴────────────┴────────────┴────────────┘      │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+## Structure Details
+
+### Grid System
+- **Max-width**: 1140px (increased from 960px for more breathing room)
+- **Content grid**: 1fr 300px (70/30 approximate split)
+- **Stats grid**: repeat(4, 1fr) on desktop, repeat(2, 1fr) on mobile
+- **Recommendations**: auto-fill, minmax(200px, 1fr)
+- **Gap between sections**: 32px (increased from 24px)
+- **Card padding**: 18-28px depending on card hierarchy
+
+### Z-Index Ordering
+1. Sidebar overlay: z-index (var)
+2. Sidebar: z-sidebar
+3. TopBar: z-topbar
+4. BottomNav: z-bottomnav
+5. Hero floats: z-index 2 within hero
+6. Hero illustration: behind floats (no z-index needed)
+
+### Responsive Breakpoints
+- **Desktop** (≥1000px): Full 2-column layout, sticky sidebar, expanded sidebar
+- **Tablet** (561-999px): Single column, 2-column stats, bottom nav visible
+- **Mobile** (<560px): Single column, compact everything, hide hero chips, hide timeline connectors
+
+## Spacing Tokens Used
+- Section gap: 32px (desktop), 24px (mobile)
+- Card padding: 28px (Continue), 18-22px (timeline), 14-18px (stats/sidebar)
+- Grid gap: 32px (content), 14px (stats), 12px (recommended)
+- Hero padding: 32px 36px (desktop), 24px (mobile)

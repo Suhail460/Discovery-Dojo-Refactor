@@ -6,7 +6,6 @@ import { clamp, pick, cap } from '../utils/helpers.js'
 import SEO from '../components/common/SEO.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 
-/* Live customer interview simulator with question analysis + scorecard. */
 export default function InterviewSim() {
   const { toast } = useToast()
   const { update, addXP, bumpStreak, checkBadges } = useStore()
@@ -81,9 +80,8 @@ export default function InterviewSim() {
       <SEO title="Interview Simulator" description="Practice customer interviews with a live AI-powered persona. Get scored on your questioning technique." />
       <Head />
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,320px) 1fr', gap: 24 }} className="sim-grid">
-        {/* persona builder */}
         <div className="card" style={{ padding: 24, alignSelf: 'start' }}>
-          <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(145deg,var(--plum),var(--accent))', display: 'grid', placeItems: 'center', fontSize: '2rem', marginBottom: 16 }}>{persona?.emoji || '🧑'}</div>
+          <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(145deg,#4F46E5,var(--primary))', display: 'grid', placeItems: 'center', fontSize: '2rem', marginBottom: 16 }}>{persona?.emoji || '🧑'}</div>
           <F label="Name"><input className="input" disabled={disabled} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></F>
           <F label="Age"><input className="input" type="number" disabled={disabled} value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} /></F>
           <F label="Profession"><Sel field="prof" opts={PERSONA_OPTS.prof} {...{ form, setForm, disabled }} /></F>
@@ -94,14 +92,13 @@ export default function InterviewSim() {
           <F label="Main goal"><input className="input" disabled={disabled} value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} /></F>
           {active
             ? <button className="btn btn-primary" style={{ width: '100%' }} onClick={end}><Flag size={16} /> End & score interview</button>
-            : <button className="btn btn-plum" style={{ width: '100%' }} onClick={start}><Play size={16} /> Start interview</button>}
+            : <button className="btn btn-primary" style={{ width: '100%' }} onClick={start}><Play size={16} /> Start interview</button>}
         </div>
 
-        {/* chat + scorecard */}
         <div>
           <div className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: 520, overflow: 'hidden' }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(145deg,var(--plum),var(--accent))', display: 'grid', placeItems: 'center', fontSize: '1.2rem' }}>{persona?.emoji || '🧑'}</div>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(145deg,#4F46E5,var(--primary))', display: 'grid', placeItems: 'center', fontSize: '1.2rem' }}>{persona?.emoji || '🧑'}</div>
               <div style={{ flex: 1 }}>
                 <h4 style={{ fontSize: '1rem' }}>{persona?.name || 'No interview yet'}</h4>
                 <p style={{ margin: 0, fontSize: '.78rem', color: 'var(--ink-3)' }}>{persona ? `${persona.prof} · ${persona.industry}` : 'Build a persona and hit start'}</p>
@@ -116,27 +113,23 @@ export default function InterviewSim() {
                 </div>
               )}
               {replying && (
-                <div style={{ maxWidth: '78%', padding: '12px 16px', borderRadius: 16, fontSize: '.95rem', alignSelf: 'flex-start', background: 'var(--surface-2)', color: 'var(--ink-3)', borderBottomLeftRadius: 5, display: 'flex', gap: 4 }} aria-label="Persona is replying">
-                  <span style={{ animation: 'dotPulse 1s infinite' }}>·</span>
-                  <span style={{ animation: 'dotPulse 1s infinite .2s' }}>·</span>
-                  <span style={{ animation: 'dotPulse 1s infinite .4s' }}>·</span>
+                <div className="typing-dots" aria-label="Persona is replying">
+                  <span>·</span><span>·</span><span>·</span>
                 </div>
               )}
             </div>
             <div style={{ display: 'flex', gap: 10, padding: 16, borderTop: '1px solid var(--line)' }}>
               <input value={input} disabled={!active} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && ask()}
-                placeholder={active ? 'Ask your question...' : 'Start the interview first'} style={{ flex: 1, border: '1.5px solid var(--line)', borderRadius: 12, background: 'var(--surface)', color: 'var(--ink)', padding: '12px 16px', fontFamily: 'inherit', fontSize: '.95rem' }} />
-              <button disabled={!active} onClick={ask} style={{ width: 'auto', padding: '0 16px', border: 'none', borderRadius: 12, background: 'var(--plum)', color: '#fff', cursor: active ? 'pointer' : 'not-allowed', opacity: active ? 1 : .5 }}><Send size={18} /></button>
+                placeholder={active ? 'Ask your question...' : 'Start the interview first'} className="sim-input" />
+              <button disabled={!active} onClick={ask} className="sim-send-btn">
+                <Send size={18} />
+              </button>
             </div>
           </div>
 
           {score && <Scorecard d={score} onReset={() => { setScore(null); setPersona(null); setLog([]) }} />}
         </div>
       </div>
-      <style>{`
-        @media (max-width:900px){ .sim-grid{ grid-template-columns:1fr !important } }
-        @keyframes dotPulse { 0%,80%{ opacity:.3;transform:translateY(0) } 40%{ opacity:1;transform:translateY(-4px) } }
-      `}</style>
     </div>
   )
 }
@@ -145,7 +138,7 @@ function Head() {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-        <span className="pill pill-lvl"><Mic size={13} /> Practice tool</span>
+        <span className="pill pill-level"><Mic size={13} /> Practice tool</span>
         <span className="pill pill-time"><Inf size={13} /> Unlimited</span>
       </div>
       <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Customer Interview Simulator</h1>
@@ -157,10 +150,10 @@ function F({ label, children }) { return <div style={{ marginBottom: 12 }}><labe
 function Sel({ field, opts, form, setForm, disabled }) { return <select className="input" disabled={disabled} value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}>{opts.map((o) => <option key={o}>{o}</option>)}</select> }
 
 function Bubble({ m }) {
-  const tagStyle = { lead: { bg: 'var(--bad-wash)', c: 'var(--bad)', I: AlertTriangle, t: 'Leading question' }, sol: { bg: 'var(--bad-wash)', c: 'var(--bad)', I: Megaphone, t: 'Pitching a solution' }, good: { bg: 'var(--ok-wash)', c: 'var(--ok)', I: Check, t: 'Strong open question' }, closed: { bg: 'var(--gold-wash)', c: 'var(--gold-ink)', I: MinusCircle, t: 'Closed / yes-no' } }
+  const tagStyle = { lead: { bg: 'var(--bad-wash)', c: 'var(--bad)', I: AlertTriangle, t: 'Leading question' }, sol: { bg: 'var(--bad-wash)', c: 'var(--bad)', I: Megaphone, t: 'Pitching a solution' }, good: { bg: 'var(--ok-wash)', c: 'var(--ok)', I: Check, t: 'Strong open question' }, closed: { bg: 'var(--coral-wash)', c: 'var(--coral)', I: MinusCircle, t: 'Closed / yes-no' } }
   const tg = m.tag ? tagStyle[m.tag] : null
   return (
-    <div style={{ maxWidth: '78%', padding: '12px 16px', borderRadius: 16, fontSize: '.95rem', lineHeight: 1.5, alignSelf: m.who === 'me' ? 'flex-end' : 'flex-start', background: m.who === 'me' ? 'var(--plum)' : 'var(--surface-2)', color: m.who === 'me' ? '#fff' : 'var(--ink)', borderBottomRightRadius: m.who === 'me' ? 5 : 16, borderBottomLeftRadius: m.who === 'me' ? 16 : 5 }}>
+    <div style={{ maxWidth: '78%', padding: '12px 16px', borderRadius: 16, fontSize: '.95rem', lineHeight: 1.5, alignSelf: m.who === 'me' ? 'flex-end' : 'flex-start', background: m.who === 'me' ? 'var(--primary)' : 'var(--surface-2)', color: m.who === 'me' ? '#fff' : 'var(--ink)', borderBottomRightRadius: m.who === 'me' ? 5 : 16, borderBottomLeftRadius: m.who === 'me' ? 16 : 5 }}>
       {m.text}
       {tg && <div style={{ marginTop: 8 }}><span style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 8px', borderRadius: 999, background: tg.bg, color: tg.c }}><tg.I size={11} /> {tg.t}</span></div>}
     </div>
@@ -169,7 +162,7 @@ function Bubble({ m }) {
 
 function Scorecard({ d, onReset }) {
   const grade = d.overall >= 85 ? 'Outstanding' : d.overall >= 70 ? 'Strong' : d.overall >= 55 ? 'Developing' : 'Needs work'
-  const rows = [['Open questions', d.openness, 'var(--ok)'], ['Avoided leading', d.nonLeading, 'var(--plum-2)'], ['Avoided pitching', d.nonPitch, 'var(--accent)'], ['Depth (why / stories)', d.depth, 'var(--gold)'], ['Rapport', d.rapport, 'var(--info)']]
+  const rows = [['Open questions', d.openness, 'var(--ok)'], ['Avoided leading', d.nonLeading, 'var(--blue)'], ['Avoided pitching', d.nonPitch, 'var(--primary)'], ['Depth (why / stories)', d.depth, 'var(--amber)'], ['Rapport', d.rapport, 'var(--info)']]
   const circ = 2 * Math.PI * 52, off = circ * (1 - d.overall / 100)
   return (
     <div className="card fade-in" style={{ padding: 24, marginTop: 24 }}>
@@ -177,7 +170,7 @@ function Scorecard({ d, onReset }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
         <svg width="120" height="120" viewBox="0 0 120 120" style={{ flex: 'none' }}>
           <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line-soft)" strokeWidth="12" />
-          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--plum)" strokeWidth="12" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={off} transform="rotate(-90 60 60)" />
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--primary)" strokeWidth="12" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={off} transform="rotate(-90 60 60)" />
           <text x="60" y="58" textAnchor="middle" fontSize="26" fontWeight="800" fill="var(--ink)" fontFamily="'Bricolage Grotesque'">{d.overall}</text>
           <text x="60" y="76" textAnchor="middle" fontSize="10" fill="var(--ink-3)">/ 100</text>
         </svg>
@@ -195,12 +188,11 @@ function Scorecard({ d, onReset }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: '"Bricolage Grotesque"', fontWeight: 700, fontSize: '.78rem', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}><ClipboardList size={16} /> What the coach noticed</div>
         <ul className="prose-q">{d.insights.map((i, k) => <li key={k}>{i}</li>)}</ul>
       </div>
-      <button className="btn btn-plum btn-sm" style={{ marginTop: 8 }} onClick={onReset}><RotateCcw size={15} /> Run another interview</button>
+      <button className="btn btn-secondary btn-sm" style={{ marginTop: 8 }} onClick={onReset}><RotateCcw size={15} /> Run another interview</button>
     </div>
   )
 }
 
-/* ---- analysis + persona reply engine ---- */
 function zeroFlags() { return { lead: 0, closed: 0, sol: 0, good: 0, openStory: 0, why: 0, rapport: 0 } }
 
 function analyze(q) {

@@ -28,7 +28,7 @@ export function ToastProvider({ children }) {
             return (
               <motion.div key={t.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
                 style={{ background: 'var(--ink)', color: 'var(--bg)', padding: '12px 20px', borderRadius: 14, fontWeight: 600, fontSize: '.9rem', boxShadow: 'var(--sh-lg)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon size={18} color="var(--gold)" /> {t.msg}
+                <Icon size={18} color="var(--primary)" /> {t.msg}
               </motion.div>
             )
           })}

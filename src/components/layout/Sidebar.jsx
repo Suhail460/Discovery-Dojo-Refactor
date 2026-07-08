@@ -1,95 +1,128 @@
-import { Compass, LayoutDashboard, Mic, Dices, Swords, Flag, Award, Lock, Check, RotateCcw, X } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronDown, LayoutDashboard, Mic, ClipboardList, Swords, Flag, Award, Lock, Check, X, ArrowRight, Rocket, Sparkles } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 import { useStore } from '../../hooks/useStore.jsx'
+import { useAuth } from '../../context/AuthContext.jsx'
 
 const NAV = [
   { view: 'home', label: 'Dashboard', icon: LayoutDashboard },
   { view: 'interview', label: 'Interview Simulator', icon: Mic },
-  { view: 'generator', label: 'Exercise Generator', icon: Dices },
+  { view: 'generator', label: 'Exercise Generator', icon: ClipboardList },
   { view: 'challenges', label: 'Discovery Challenges', icon: Swords },
   { view: 'capstone', label: 'Capstone Project', icon: Flag },
-  { view: 'badges', label: 'Skill Tree & Badges', icon: Award }
+  { view: 'badges', label: 'Skill Tree & Badges', icon: Award },
 ]
 
 export default function Sidebar({ nav, open, onClose, onReset }) {
   const { view, level } = nav.current
-  const { levelDoneCount, levelScreens, levelDone, isUnlocked } = useStore()
+  const { levelDoneCount, levelScreens, levelDone, isUnlocked, maxUnlocked } = useStore()
+  const { user } = useAuth()
+  const [pathOpen, setPathOpen] = useState(true)
+  const mu = maxUnlocked()
+
+  const avatarLetter = user?.avatar || (user?.name ? user.name.trim().charAt(0).toUpperCase() : 'U')
 
   return (
     <>
-      <div onClick={onClose} className="sb-overlay" aria-hidden="true"
-        style={{ position: 'fixed', inset: 0, background: 'oklch(0 0 0 / 0.4)', backdropFilter: 'blur(4px)', zIndex: 39, display: open ? 'block' : 'none' }} />
-      <aside className="sidebar" role="navigation" aria-label="Navigation sidebar"
-        style={{
-          background: 'var(--surface)', borderRight: '1px solid var(--line)', padding: '24px 16px',
-          display: 'flex', flexDirection: 'column', gap: 16, zIndex: 40, overflowY: 'auto',
-          position: 'fixed', left: 0, top: 0, width: 300, height: '100dvh',
-          transform: open ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform .35s var(--ease-out)',
-          boxShadow: 'var(--sh-lg)',
-        }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px', marginBottom: 8 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(145deg,var(--accent),var(--plum))', display: 'grid', placeItems: 'center', color: '#fff', boxShadow: 'var(--sh-md)', transform: 'rotate(-4deg)' }}><Compass size={22} /></div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: '"Bricolage Grotesque"', fontWeight: 800, fontSize: '1.12rem', lineHeight: 1 }}>Discovery Dojo</div>
-            <div style={{ fontSize: '.7rem', color: 'var(--ink-3)', letterSpacing: '.04em', textTransform: 'uppercase', marginTop: 3 }}>Product Discovery Mastery</div>
+      {open && <div onClick={onClose} className="sb-overlay" aria-hidden="true" />}
+      <aside className={'sidebar' + (open ? ' open' : '')} role="navigation" aria-label="Navigation sidebar">
+        {/* ═══ BRAND ═══ */}
+        <div className="sb-brand">
+          <div className="sb-brand-icon">
+            <Rocket size={26} />
           </div>
-          <button onClick={onClose} className="hide-desktop" aria-label="Close sidebar"
-            style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid var(--line)', background: 'var(--surface)', display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer' }}>
-            <X size={18} />
+          <div className="sb-brand-text">
+            <div className="sb-brand-name">Discovery Dojo</div>
+            <div className="sb-brand-sub">Product Discovery Mastery</div>
+          </div>
+          <button onClick={onClose} className="sb-close-btn" aria-label="Close sidebar">
+            <X size={16} />
           </button>
         </div>
 
-        <div>
-          <GroupLabel>Practice</GroupLabel>
-          {NAV.map((n) => (
-            <NavBtn key={n.view} active={view === n.view} icon={n.icon} label={n.label} onClick={() => { nav.go(n.view); onClose() }} />
-          ))}
-        </div>
-
-        <div>
-          <GroupLabel>Learning Path</GroupLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {CURRICULUM.map((l) => {
-              const unlocked = isUnlocked(l.id), done = levelDone(l.id)
-              const active = view === 'level' && level === l.id
-              const pct = Math.round((levelDoneCount(l.id) / levelScreens(l.id)) * 100)
+        {/* ═══ SCROLLABLE MIDDLE ═══ */}
+        <div className="sb-scroll">
+          {/* ─── PRACTICE ─── */}
+          <div className="sb-section">
+            <div className="sb-section-header">Practice</div>
+            {NAV.map((n) => {
+              const active = view === n.view
               return (
-                <button key={l.id} disabled={!unlocked} onClick={() => { nav.openLevel(l.id); onClose() }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', border: 'none', background: active ? 'var(--plum-wash)' : 'transparent', padding: '8px 12px', borderRadius: 8, cursor: unlocked ? 'pointer' : 'not-allowed', opacity: unlocked ? 1 : .5, transition: 'all .18s' }}>
-                  <span style={{ width: 26, height: 26, borderRadius: 8, flex: 'none', display: 'grid', placeItems: 'center', fontFamily: '"Bricolage Grotesque"', fontWeight: 700, fontSize: '.78rem', background: done ? 'var(--ok)' : active ? 'var(--plum)' : 'var(--surface-3)', color: done || active ? '#fff' : 'var(--ink-2)', border: done || active ? 'none' : '1px solid var(--line)' }}>
-                    {done ? <Check size={14} /> : l.id}
-                  </span>
-                  <span style={{ minWidth: 0, flex: 1 }}>
-                    <span style={{ display: 'block', fontSize: '.85rem', fontWeight: 600, color: active ? 'var(--plum)' : 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.title}</span>
-                    <span style={{ display: 'block', height: 3, borderRadius: 3, background: 'var(--line-soft)', marginTop: 4, overflow: 'hidden' }}>
-                      <span style={{ display: 'block', height: '100%', width: pct + '%', background: 'var(--plum-2)', borderRadius: 3, transition: 'width .5s' }} />
-                    </span>
-                  </span>
-                  {!unlocked && <Lock size={14} color="var(--ink-3)" style={{ flex: 'none' }} />}
+                <button key={n.view}
+                  onClick={() => { nav.go(n.view); onClose() }}
+                  className={'sb-nav-item' + (active ? ' active' : '')}>
+                  <span className="sb-nav-icon"><n.icon size={20} /></span>
+                  <span>{n.label}</span>
                 </button>
               )
             })}
           </div>
+
+          {/* ─── LEARNING PATH ─── */}
+          <div className="sb-section">
+            <button className="sb-collapse-btn" onClick={() => setPathOpen(!pathOpen)}>
+              <span className="sb-section-header" style={{ margin: 0 }}>Learning Path</span>
+              <ChevronDown size={14} style={{
+                color: '#C4C8D0',
+                transform: pathOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                transition: 'transform 0.3s'
+              }} />
+            </button>
+            {pathOpen && (
+              <div className="sb-lessons">
+                {CURRICULUM.map((l) => {
+                  const unlocked = isUnlocked(l.id), done = levelDone(l.id)
+                  const active = view === 'level' && level === l.id
+                  const isCurrent = l.id === mu && !done
+                  return (
+                    <button key={l.id} disabled={!unlocked}
+                      onClick={() => { nav.openLevel(l.id); onClose() }}
+                      className={'sb-lesson-item' + (active ? ' active' : '') + (isCurrent ? ' current-lesson' : '')}>
+                      <span className={'sb-lesson-num' + (done ? ' done' : '') + (!unlocked ? ' locked' : '')}>
+                        {done ? <Check size={12} /> : l.id}
+                      </span>
+                      <span className="sb-lesson-info">
+                        <span className={'sb-lesson-title' + (done ? ' done' : '') + (!unlocked ? ' locked' : '')}>
+                          {l.title}
+                        </span>
+                      </span>
+                      {!unlocked && <Lock size={12} className="sb-lesson-lock" />}
+                    </button>
+                  )
+                })}
+                <button className="sb-view-all" onClick={() => nav.go('home')}>
+                  View all levels <ArrowRight size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ─── GO PRO ─── */}
+          <div className="sb-go-pro">
+            <div className="sb-go-pro-icon"><Sparkles size={22} /></div>
+            <div className="sb-go-pro-badge">Pro</div>
+            <div className="sb-go-pro-title">Unlock Pro</div>
+            <div className="sb-go-pro-sub">
+              AI Coach &middot; Interview Packs &middot; Certificates
+            </div>
+            <button className="sb-go-pro-btn" onClick={() => {}}>
+              Upgrade Now <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
 
-        <div style={{ marginTop: 'auto', padding: '0 8px' }}>
-          <button onClick={onReset} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', border: 'none', background: 'transparent', color: 'var(--ink-3)', fontSize: '.8rem', fontWeight: 600, padding: '9px 12px', borderRadius: 8, cursor: 'pointer' }}>
-            <RotateCcw size={16} /> Reset progress
-          </button>
+        {/* ═══ PROFILE ═══ */}
+        <div className="sb-profile" onClick={() => {}}>
+          <div className="sb-profile-avatar">
+            {avatarLetter}
+          </div>
+          <div className="sb-profile-info">
+            <div className="sb-profile-name">{user?.name || 'Guest'}</div>
+            <div className="sb-profile-role">Product Discovery</div>
+          </div>
+          <ChevronDown size={16} className="sb-profile-arrow" />
         </div>
       </aside>
     </>
-  )
-}
-
-function GroupLabel({ children }) {
-  return <div style={{ fontSize: '.68rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--ink-3)', fontWeight: 700, padding: '0 8px', marginBottom: 6 }}>{children}</div>
-}
-function NavBtn({ active, icon: Icon, label, onClick }) {
-  return (
-    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', border: 'none', background: active ? 'var(--accent-wash)' : 'transparent', color: active ? 'var(--accent-ink)' : 'var(--ink-2)', fontSize: '.92rem', fontWeight: 600, padding: '9px 12px', borderRadius: 8, cursor: 'pointer', transition: 'all .18s' }}>
-      <Icon size={18} color={active ? 'var(--accent)' : 'var(--ink-3)'} /> {label}
-    </button>
   )
 }

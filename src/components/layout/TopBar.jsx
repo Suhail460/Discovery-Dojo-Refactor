@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Menu, Zap, Flame, Gauge, Moon, Sun, LogOut, Download, Upload, Sparkles } from 'lucide-react'
+import { Menu, Zap, Flame, Gauge, Moon, Sun, LogOut, Download, Upload, Sparkles, Bell } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 import { useStore } from '../../hooks/useStore.jsx'
 import { useTheme } from '../../context/ThemeContext.jsx'
@@ -34,45 +34,80 @@ export default function TopBar({ nav, onMenu, onCoachToggle }) {
   }
 
   return (
-    <header style={{ position: 'sticky', top: 0, zIndex: 30, display: 'flex', alignItems: 'center', gap: 16, padding: '12px clamp(16px,4vw,40px)', background: theme === 'dark' ? 'oklch(0.165 0.014 300 / 0.82)' : 'oklch(0.982 0.006 40 / 0.82)', backdropFilter: 'blur(14px)', borderBottom: '1px solid var(--line)' }}>
-      <button className="menu-toggle" onClick={onMenu} style={{ border: '1px solid var(--line)', background: 'var(--surface)', borderRadius: 10, width: 40, height: 40, display: 'none', placeItems: 'center', color: 'var(--ink)', cursor: 'pointer' }}><Menu size={20} /></button>
-      <div style={{ fontWeight: 600, color: 'var(--ink-2)', fontSize: '.9rem', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{crumb}</div>
+    <header className="topbar">
+      <button className="topbar-menu-toggle" onClick={onMenu} aria-label="Open menu"
+        style={{ border: 'none', background: 'var(--surface-2)', borderRadius: 10, width: 36, height: 36, display: 'grid', placeItems: 'center', color: 'var(--ink)', cursor: 'pointer' }}>
+        <Menu size={18} />
+      </button>
+      <div style={{ fontWeight: 600, color: 'var(--ink-2)', fontSize: '.85rem', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{crumb}</div>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Chip icon={<Zap size={15} />} color="var(--plum)">{state.xp} XP</Chip>
-        <Chip icon={<Flame size={15} />} color="var(--accent)">{state.streak || 0}</Chip>
-        <Chip icon={<Gauge size={15} />} color="var(--gold-ink)" hideSm>{masteryPct()}%</Chip>
-        <IconBtn onClick={onCoachToggle} title="Ask the AI coach"><Sparkles size={18} /></IconBtn>
-        <IconBtn onClick={toggle} title="Toggle theme">{theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}</IconBtn>
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Chip icon={<Zap size={13} />} color="var(--primary)" bg="var(--primary-wash)"><span className="tnum">{state.xp}</span> XP</Chip>
+        <Chip icon={<Flame size={13} />} color="var(--amber)" bg="var(--amber-wash)"><span className="tnum">{state.streak || 0}</span></Chip>
+        <Chip icon={<Gauge size={13} />} color="var(--green)" bg="var(--green-wash)" hideSm><span className="tnum">{masteryPct()}%</span></Chip>
+        <IconBtn onClick={onCoachToggle} title="Ask the AI coach"><Sparkles size={16} /></IconBtn>
+        <IconBtn title="Notifications" style={{ position: 'relative' }}><Bell size={16} /><span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: 'var(--bad)' }} /></IconBtn>
+        <IconBtn onClick={toggle} title="Toggle theme">{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}</IconBtn>
 
         <div style={{ position: 'relative' }} ref={popRef}>
-          <button onClick={() => setMenuOpen(!menuOpen)} style={{ width: 40, height: 40, borderRadius: 999, border: 'none', background: 'linear-gradient(145deg,var(--plum),var(--accent))', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>{user?.avatar || 'U'}</button>
+          <button onClick={() => setMenuOpen(!menuOpen)} aria-label="User menu"
+            style={{ width: 34, height: 34, borderRadius: 9, border: 'none', background: 'linear-gradient(135deg,#6D4CFF,#8B5CF6)', color: '#fff', fontWeight: 700, fontSize: '.85rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(109,76,255,0.3)', transition: 'all .2s' }}>
+            {user?.avatar || 'U'}
+          </button>
           {menuOpen && (
-            <div style={{ position: 'absolute', right: 0, top: 48, width: 220, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 8, zIndex: 50 }}>
-              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--line)', marginBottom: 6 }}>
-                <div style={{ fontWeight: 700, fontSize: '.9rem' }}>{user?.name}</div>
-                <div style={{ fontSize: '.78rem', color: 'var(--ink-3)' }}>{user?.email || 'Guest session'}</div>
+            <div style={{
+              position: 'absolute', right: 0, top: 44, width: 200,
+              background: 'color-mix(in srgb, var(--surface) 80%, transparent)', backdropFilter: 'blur(24px)',
+              border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 6, zIndex: 50
+            }}>
+              <div style={{ padding: '6px 10px', borderBottom: '1px solid var(--line)', marginBottom: 4 }}>
+                <div style={{ fontWeight: 700, fontSize: '.85rem' }}>{user?.name}</div>
+                <div style={{ fontSize: '.75rem', color: 'var(--ink-3)' }}>{user?.email || 'Guest session'}</div>
               </div>
-              <MenuItem icon={<Download size={16} />} onClick={doExport}>Export progress</MenuItem>
-              <MenuItem icon={<Upload size={16} />} onClick={() => fileRef.current?.click()}>Import progress</MenuItem>
-              <MenuItem icon={<LogOut size={16} />} onClick={logout} danger>Sign out</MenuItem>
+              <MenuItem icon={<Download size={14} />} onClick={doExport}>Export progress</MenuItem>
+              <MenuItem icon={<Upload size={14} />} onClick={() => fileRef.current?.click()}>Import progress</MenuItem>
+              <MenuItem icon={<LogOut size={14} />} onClick={logout} danger>Sign out</MenuItem>
               <input ref={fileRef} type="file" accept="application/json" onChange={doImport} style={{ display: 'none' }} />
             </div>
           )}
         </div>
       </div>
-
-      <style>{`@media (max-width:1000px){ .menu-toggle{ display:grid !important } }`}</style>
     </header>
   )
 }
 
-function Chip({ icon, color, children, hideSm }) {
-  return <div className={hideSm ? 'chip-hide-sm' : ''} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, background: 'var(--surface)', border: '1px solid var(--line)', fontWeight: 700, fontSize: '.82rem', color }}>{icon} <span className="tnum">{children}</span></div>
+function Chip({ icon, children, hideSm, color, bg }) {
+  return (
+    <div className={hideSm ? 'hide-mobile' : ''}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999,
+        background: bg || 'var(--surface-2)', fontWeight: 600, fontSize: '.78rem',
+        color: color || 'var(--ink-2)',
+        transition: 'all .15s', whiteSpace: 'nowrap'
+      }}>
+      {icon} {children}
+    </div>
+  )
 }
-function IconBtn({ children, onClick, title }) {
-  return <button onClick={onClick} title={title} style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid var(--line)', background: 'var(--surface)', display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer' }}>{children}</button>
+
+function IconBtn({ children, onClick, title, style: extraStyle }) {
+  return (
+    <button onClick={onClick} title={title} aria-label={title}
+      style={{
+        width: 34, height: 34, borderRadius: 9, border: 'none', background: 'transparent',
+        display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer', transition: 'all .15s',
+        ...extraStyle
+      }}>
+      {children}
+    </button>
+  )
 }
+
 function MenuItem({ icon, children, onClick, danger }) {
-  return <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: danger ? 'var(--bad)' : 'var(--ink-2)', fontSize: '.88rem', fontWeight: 600, padding: '9px 10px', borderRadius: 8, cursor: 'pointer' }}>{icon} {children}</button>
+  return (
+    <button onClick={onClick}
+      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: danger ? 'var(--bad)' : 'var(--ink-2)', fontSize: '.84rem', fontWeight: 600, padding: '7px 10px', borderRadius: 8, cursor: 'pointer', transition: 'all .15s' }}>
+      {icon} {children}
+    </button>
+  )
 }

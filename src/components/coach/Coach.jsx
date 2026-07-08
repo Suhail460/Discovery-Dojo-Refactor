@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, X, ArrowUp } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 
-/* Socratic coach. Rule-based, context-aware replies. It nudges rather than
-   hands over answers. Swap coachReply() for an LLM API call to go live. */
 export default function Coach({ nav, open: controlledOpen, onClose }) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
@@ -12,7 +10,6 @@ export default function Coach({ nav, open: controlledOpen, onClose }) {
   const [msgs, setMsgs] = useState([{ who: 'bot', text: "Hey, I'm Mei, your discovery coach. I won't just hand you answers, I'll nudge your thinking. Ask me anything, or tap a prompt below." }])
   const [input, setInput] = useState('')
   const bodyRef = useRef(null)
-
   const [typing, setTyping] = useState(false)
 
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight }, [msgs, open, typing])
@@ -29,85 +26,95 @@ export default function Coach({ nav, open: controlledOpen, onClose }) {
   return (
     <>
       <button onClick={() => setOpen(!open)} title="Ask your AI coach" aria-label="Toggle AI coach"
-        className="coach-fab" style={{ position: 'fixed', right: 22, bottom: 22, zIndex: 60, width: 58, height: 58, borderRadius: 18, border: 'none', background: 'linear-gradient(145deg,var(--plum),var(--accent))', color: '#fff', display: 'grid', placeItems: 'center', boxShadow: 'var(--sh-lg)', cursor: 'pointer', transition: 'transform 0.2s var(--ease-out)' }}>
-        <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.25 }}><Sparkles size={26} /></motion.div>
-        <span style={{ position: 'absolute', top: -3, right: -3, width: 16, height: 16, background: 'var(--gold)', borderRadius: '50%', border: '2px solid var(--bg)', fontSize: '.6rem', color: '#000', display: 'grid', placeItems: 'center', fontWeight: 800 }}>?</span>
+        className="coach-fab"
+        style={{
+          position: 'fixed', right: 20, bottom: 20, zIndex: 60, width: 54, height: 54, borderRadius: 16,
+          border: 'none', background: 'var(--primary)', color: '#fff', display: 'grid', placeItems: 'center',
+          cursor: 'pointer'
+        }}>
+        <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.25 }}><Sparkles size={24} /></motion.div>
       </button>
 
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: 16, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: .98 }} transition={{ duration: .25 }}
-            className="coach-panel" style={{ position: 'fixed', right: 22, bottom: 92, zIndex: 61, width: 'min(390px, calc(100vw - 44px))', maxHeight: 'min(620px, calc(100vh - 130px))', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 30, boxShadow: 'var(--sh-lg)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: 16, borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12, background: 'linear-gradient(180deg,var(--plum-wash),transparent)' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(145deg,var(--plum),var(--accent))', display: 'grid', placeItems: 'center', color: '#fff' }}><Sparkles size={20} /></div>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ fontSize: '1rem' }}>Coach Mei</h4>
-                <p style={{ margin: 0, fontSize: '.76rem', color: 'var(--ink-3)' }}>Your Socratic discovery mentor</p>
+          <motion.div initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} transition={{ duration: .22 }}
+            className="coach-panel"
+            style={{
+              position: 'fixed', right: 20, bottom: 86, zIndex: 61, width: 'min(380px, calc(100vw - 40px))',
+              maxHeight: 'min(580px, calc(100vh - 120px))', background: 'var(--surface)',
+              border: '1px solid var(--line)', borderRadius: 24, display: 'flex', flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
+            <div style={{ padding: 14, borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--primary)', display: 'grid', placeItems: 'center', color: '#fff', flex: 'none' }}>
+                <Sparkles size={18} />
               </div>
-              <button onClick={() => setOpen(false)} style={{ width: 34, height: 34, borderRadius: 10, border: '1px solid var(--line)', background: 'var(--surface)', display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer' }}><X size={18} /></button>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ fontSize: '.92rem' }}>Coach Mei</h4>
+                <p style={{ margin: 0, fontSize: '.72rem', color: 'var(--ink-3)', lineHeight: 1.3 }}>Socratic discovery mentor</p>
+              </div>
+              <button onClick={() => setOpen(false)} style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer' }}><X size={16} /></button>
             </div>
 
-            <div ref={bodyRef} style={{ padding: 16, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+            <div ref={bodyRef} style={{ padding: 14, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
               {msgs.map((m, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.2 }}
-                  style={{ padding: '12px 14px', borderRadius: 14, fontSize: '.9rem', lineHeight: 1.5, maxWidth: '90%', alignSelf: m.who === 'me' ? 'flex-end' : 'flex-start', background: m.who === 'me' ? 'var(--plum)' : 'var(--surface-2)', color: m.who === 'me' ? '#fff' : 'var(--ink)', borderBottomRightRadius: m.who === 'me' ? 4 : 14, borderBottomLeftRadius: m.who === 'me' ? 14 : 4 }}>{m.text}</motion.div>
+                <motion.div key={i} initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.18 }}
+                  className={m.who === 'me' ? 'bubble-user' : 'bubble-coach'}
+                  style={{ maxWidth: '85%', fontSize: '.85rem' }}>
+                  {m.text}
+                </motion.div>
               ))}
               {typing && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '12px 14px', borderRadius: 14, fontSize: '.9rem', alignSelf: 'flex-start', background: 'var(--surface-2)', color: 'var(--ink-3)', borderBottomLeftRadius: 4, display: 'flex', gap: 4 }} aria-label="Coach is typing">
-                  <span style={{ animation: 'dotPulse 1s infinite' }}>·</span>
-                  <span style={{ animation: 'dotPulse 1s infinite 0.2s' }}>·</span>
-                  <span style={{ animation: 'dotPulse 1s infinite 0.4s' }}>·</span>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bubble-typing" aria-label="Coach is typing">
+                  <span>·</span><span>·</span><span>·</span>
                 </motion.div>
               )}
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, padding: '0 16px 12px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 14px 10px' }}>
               {chips.map((c) => (
-                <button key={c} onClick={() => send(c)} style={{ padding: '7px 12px', borderRadius: 999, background: 'var(--surface-2)', border: '1px solid var(--line)', fontSize: '.78rem', fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer' }}>{c}</button>
+                <button key={c} onClick={() => send(c)}
+                  style={{ padding: '6px 11px', borderRadius: 999, background: 'var(--surface-2)', border: '1px solid var(--line)', fontSize: '.75rem', fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer' }}>{c}</button>
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderTop: '1px solid var(--line)' }}>
+            <div style={{ display: 'flex', gap: 8, padding: '10px 14px', borderTop: '1px solid var(--line)' }}>
               <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()}
-                placeholder="Ask, or say 'give me a hint'..." style={{ flex: 1, border: '1.5px solid var(--line)', borderRadius: 12, background: 'var(--surface)', color: 'var(--ink)', padding: '10px 14px', fontFamily: 'inherit', fontSize: '.9rem' }} />
-              <button onClick={() => send()} style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: 'var(--plum)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}><ArrowUp size={18} /></button>
+                placeholder="Ask or say 'give me a hint'..."
+                style={{ flex: 1, border: '1.5px solid var(--line)', borderRadius: 10, background: 'var(--surface)', color: 'var(--ink)', padding: '9px 12px', fontFamily: 'inherit', fontSize: '.85rem', outline: 'none' }} />
+              <button onClick={() => send()}
+                style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+                <ArrowUp size={17} />
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-      <style>{`
-        @keyframes dotPulse { 0%,80%{ opacity:.3;transform:translateY(0) } 40%{ opacity:1;transform:translateY(-4px) } }
-        @media (max-width:560px){
-          .coach-fab{ width:50px !important; height:50px !important; right:14px !important; bottom:14px !important }
-          .coach-panel{ right:14px !important; bottom:80px !important; width:calc(100vw - 28px) !important; max-height:calc(100vh - 110px) !important }
-        }
-      `}</style>
     </>
   )
 }
 
 function chipsFor(view) {
-  if (view === 'level') return ['Give me a hint on this screen', 'Why does this matter?', 'Give me an analogy', 'Explain this simply']
+  if (view === 'level') return ['Give me a hint', 'Why does this matter?', 'Give me an analogy', 'Explain simply']
   if (view === 'interview') return ['How do I ask better questions?', "What's a leading question?", 'Give me an opener']
-  if (view === 'capstone') return ['Is my opportunity a solution in disguise?', 'How do I write a kill criterion?', 'Challenge my assumption']
-  return ['Give me a hint', 'What should I focus on?', 'Explain product discovery', 'Challenge my thinking']
+  if (view === 'capstone') return ['Is this a solution?', 'How to write a kill criterion?', 'Challenge my assumption']
+  return ['Give me a hint', 'What should I focus on?', 'Explain discovery', 'Challenge me']
 }
 
 function coachReply(q, cur) {
   const l = q.toLowerCase()
   const lvl = cur.view === 'level' ? CURRICULUM.find((x) => x.id === cur.level) : null
   const sc = lvl ? lvl.screens[Math.min(cur.screen || 0, lvl.screens.length - 1)] : null
-
-  if (/hint/.test(l)) return sc?.hint || (sc ? `Re-read the lead line and name the ONE risk this screen reduces before you answer the quiz.` : "Tell me what you're stuck on and I'll nudge, not solve.")
-  if (/leading question|leading/.test(l)) return "A leading question smuggles the answer in: 'Don't you hate when X?'. Strip your opinion and ask about a real past event: 'Tell me about the last time X happened.'"
-  if (/better question|ask better|opener/.test(l)) return "Openers that work: 'Walk me through the last time you tried to [job].' 'What did you do right before that?' All past-tense and open. Try one."
-  if (/solution in disguise|opportunity/.test(l)) return "Test it fast: can you imagine three different ways to solve it? If yes, it's an opportunity. If it names one feature, it's a solution."
-  if (/kill criterion|kill|threshold/.test(l)) return "A kill criterion is the number that makes you STOP. 'We scale if X% do Y; we kill it if fewer than Z%.' Set it BEFORE the test."
-  if (/challenge|assumption/.test(l)) return "Prosecutor mode: what evidence would prove your idea WRONG? If you can't name it, you're seeking applause, not testing."
-  if (/focus|weak|what should/.test(l)) return "Push through the levels in order. When you miss a quiz, I'll steer you back to that topic."
-  if (/why.*matter|why does/.test(l)) return sc ? `Because ${sc.lead || 'this reduces a specific risk before you spend engineering weeks'}.` : 'Building the wrong thing well is still failure. Cheaper to learn than to ship blind.'
+  if (/hint/.test(l)) return sc?.hint || (sc ? 'Re-read the lead and name the ONE risk this screen reduces.' : "Tell me what you're stuck on.")
+  if (/leading/.test(l)) return "A leading question smuggles the answer in. Ask about a real past event: 'Tell me about the last time...'"
+  if (/better|opener/.test(l)) return "Try: 'Walk me through the last time you tried to [job].' Past-tense and open."
+  if (/solution/.test(l)) return "If you can imagine three ways to solve it, it's an opportunity. If it names one feature, it's a solution."
+  if (/kill/.test(l)) return "A kill criterion is the number that makes you STOP. Set it BEFORE the test."
+  if (/challenge|assumption/.test(l)) return "Prosecutor mode: what evidence would prove your idea WRONG?"
+  if (/focus|what should/.test(l)) return "Push through levels in order. When you miss a quiz, I'll steer you back."
+  if (/why/.test(l)) return sc ? `Because ${sc.lead || 'this reduces risk before building'}.` : 'Building the wrong thing is still failure.'
   if (/analogy/.test(l)) return sc?.analogy ? `${sc.analogy.title}: ${sc.analogy.body}` : 'Discovery is diagnosis before prescription.'
-  if (/simply|explain|eli5/.test(l)) return sc ? `Simply: ${sc.title} is about ${(sc.lead || '').toLowerCase() || 'reducing uncertainty before you build'}.` : 'Discovery = deciding what to build. Delivery = building it well.'
+  if (/simply|explain/.test(l)) return sc ? `Simply: ${sc.title} is about reducing uncertainty.` : 'Discovery = deciding what to build.'
   if (/thank/.test(l)) return 'Anytime. Now go reduce some uncertainty.'
-  return 'Good question. Reframe it around the four risks (value, usability, feasibility, viability) and it usually gets sharper. What are you trying to decide?'
+  return 'Good question. Reframe it around the four risks (value, usability, feasibility, viability). What are you trying to decide?'
 }

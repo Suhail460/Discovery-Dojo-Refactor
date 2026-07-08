@@ -8,7 +8,7 @@ function ConfettiBurst() {
     x: (Math.random() - 0.5) * 200,
     y: -(Math.random() * 120 + 40),
     r: Math.random() * 8 + 4,
-    c: ['var(--plum)', 'var(--accent)', 'var(--gold)', 'var(--ok)', 'var(--info)'][i % 5],
+    c: ['var(--primary)', 'var(--blue)', 'var(--amber)', 'var(--ok)', 'var(--coral)'][i % 5],
     delay: Math.random() * 0.2
   })), [])
   return (
@@ -56,7 +56,7 @@ function Feedback({ ok, children, index }) {
         <div>
           <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
             {ok ? 'Correct!' : 'Not quite'}
-            {ok && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }} className="pill pill-d1"><Zap size={11} /> +15 XP</motion.span>}
+            {ok && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }} className="pill pill-done"><Zap size={11} /> +15 XP</motion.span>}
           </div>
           <div style={{ lineHeight: 1.6 }}>{children}</div>
         </div>
@@ -145,8 +145,8 @@ function Ordering({ quiz, onResult }) {
       <Prompt quiz={quiz} />
       {items.map((it, pos) => {
         const state = checked ? (it.orig === pos ? 'right' : 'wrong') : null
-        const numBg = state === 'right' ? 'var(--ok)' : state === 'wrong' ? 'var(--bad)' : 'var(--plum-wash)'
-        const numCol = state ? '#fff' : 'var(--plum)'
+        const numBg = state === 'right' ? 'var(--ok)' : state === 'wrong' ? 'var(--bad)' : 'var(--surface-3)'
+        const numCol = state ? '#fff' : 'var(--ink-2)'
         return (
           <motion.div key={it.orig} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} draggable={!checked}
             onDragStart={() => { dragIdx.v = pos }} onDragOver={(e) => e.preventDefault()} onDrop={() => onDrop(pos)}
@@ -160,7 +160,7 @@ function Ordering({ quiz, onResult }) {
         )
       })}
       {!checked
-        ? <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}><button className="btn btn-plum btn-sm" style={{ marginTop: 8 }} onClick={() => { setChecked(true); onResult(allRight) }}><Check size={15} /> Check order</button></motion.div>
+        ? <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}><button className="btn btn-primary btn-sm" style={{ marginTop: 8 }} onClick={() => { setChecked(true); onResult(allRight) }}><Check size={15} /> Check order</button></motion.div>
         : <AnimatePresence><Feedback ok={allRight} index={0}>{allRight ? 'Perfect sequence.' : 'Correct order: ' + quiz.items.join(' -> ')}</Feedback></AnimatePresence>}
     </div>
   )
@@ -188,7 +188,7 @@ function Matching({ quiz, onResult }) {
           <div style={{ fontSize: '.72rem', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--ink-3)', fontWeight: 700, marginBottom: 8 }}>Item</div>
           {quiz.pairs.map((p, i) => {
             const matched = matches[i] !== undefined
-            const s = matched ? cell({ borderColor: 'var(--ok)', background: 'var(--ok-wash)', opacity: .75 }) : selLeft === i ? cell({ borderColor: 'var(--plum)', background: 'var(--plum-wash)' }) : cell()
+            const s = matched ? cell({ borderColor: 'var(--ok)', background: 'var(--ok-wash)', opacity: .75 }) : selLeft === i ? cell({ borderColor: 'var(--primary)', background: 'var(--primary-wash)' }) : cell()
             return <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} style={s} onClick={() => !matched && !done && setSelLeft(i)}>{p.l}</motion.div>
           })}
         </div>

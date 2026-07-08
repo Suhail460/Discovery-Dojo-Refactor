@@ -1,69 +1,58 @@
-# Design Decisions
+# Design Decisions — Discovery Dojo
 
-This document captures the rationale behind key design decisions in Discovery Dojo.
+## Principles
+1. **Purpose over decoration** — every element answers a specific user question.
+2. **Progressive disclosure** — start with the big picture (hero + stats), then specific (continue), then detailed (path).
+3. **Consistency with personality** — use the established design tokens, but compose them in premium patterns.
 
-## Mobile-first bottom navigation
+## Key Decisions
 
-**Decision**: Replace the sidebar-only navigation with a bottom tab bar on mobile, sticky sidebar on desktop (≥1000px).
+### 1. Hero as a dashboard, not a banner
+**Decision**: The hero is ~280px with two columns: greeting/CTA on the left, visual/floating cards on the right.
+**Why**: The traditional single-column hero wastes the right side. By making it two-column, the user sees both motivation and progress in one viewport without scrolling.
+**Inspiration**: Duolingo's streak-heavy hero + Linear's clean greeting pattern.
 
-**Rationale**: The original sidebar was unusable on mobile — users had to tap a hamburger, then tap a nav item, then close. Bottom navigation is the mobile industry standard (Instagram, Twitter, Duolingo all use it) because it's thumb-reachable and always visible.
+### 2. Floating cards replace static badges
+**Decision**: Streak badge, mastery percentage, and XP total float over a soft gradient illustration area with 3-5s oscillation animations.
+**Why**: Static badges feel flat. Floating elements with subtle motion create a premium "live dashboard" feel without adding real-time data.
+**Inspiration**: Stripe dashboard's floating metric cards.
 
-**Trade-off**: Desktop users lose ~60px of vertical space. The sidebar provides richer navigation with progress bars per level, so we keep it on desktop.
+### 3. Stats row uses 4 columns instead of 5
+**Decision**: 4 stats (XP, Levels, Badges, Mastery) with animated progress bars and weekly change indicators.
+**Why**: Streak data lives in the hero as a floating card, not in the stats row. This reduces clutter and gives each stat enough room for a large value, label, progress bar, and change indicator.
+**Inspiration**: Vercel analytics cards.
 
-## XP Ring instead of text metrics
+### 4. Continue Learning is the visual centerpiece
+**Decision**: The largest card on the dashboard with a progress ring, lesson meta (difficulty, duration, XP), and a dominant CTA button.
+**Why**: Getting the user to their next lesson is the primary conversion goal. The card needs to feel important enough to click without being overwhelming.
+**Inspiration**: Duolingo's lesson card + Linear's primary action button.
 
-**Decision**: Replace the 4-card metric row with an SVG XP ring + compact stats bar.
+### 5. Learning Path uses a timeline with alternating backgrounds
+**Decision**: Each level is a horizontal card with a vertical timeline connector. Every other card has a subtle primary-wash background.
+**Why**: The timeline visually communicates progression in a way stacked cards cannot. Alternating backgrounds break the monotony of identical rectangles without introducing new colors.
+**Inspiration**: Linear's project timeline + Notion's roadmap view.
 
-**Rationale**: A circular progress ring is more emotionally satisfying than a number. It gives a visceral sense of progress toward the next milestone. The original metric cards were information-dense but cold — users scanned them but didn't feel them.
+### 6. Right sidebar is sticky with purpose-ordered content
+**Decision**: Sidebar stacks: Daily Goal → Quick Actions → Weekly Chart → Next Badge → AI Recommendation → Upcoming Milestone.
+**Why**: The sidebar should never be a dumping ground. Each item has a role: daily motivation (Goal), quick wins (Actions), progress pattern (Chart), future incentive (Badge, Milestone), and guidance (Recommendation).
+**Inspiration**: Linear's right sidebar for issue metadata + Notion's page sidebar.
 
-**Implementation**: SVG circle with stroke-dasharray animation on mount. Uses a gradient from plum → accent. Animated with framer-motion's `initial`/`animate` for the fill-up effect.
+### 7. Mobile follows a different flow
+**Decision**: On mobile (<560px): Hero → Continue Learning → Daily Goal → Stats (2-col grid) → Quick Actions → Learning Path → Recommendations.
+**Why**: Desktop layouts don't compress. The mobile flow prioritizes what the user needs first: motivation, then next action, then goal check, then overview.
+**Inspiration**: Duolingo's mobile-first approach.
 
-## OKLCH color system
+### 8. Weekly progress chart as mini bar chart
+**Decision**: 7 bars representing Mon-Sun with active highlighting for streak days.
+**Why**: A mini chart communicates weekly consistency in ~60px of vertical space. More efficient than text and more visual than numbers.
+**Inspiration**: Headspace's streak visualization.
 
-**Decision**: Use OKLCH for all colors instead of HSL or hex.
+### 9. Animated number counters
+**Decision**: XP and stat values use `useSpring` from framer-motion for smooth counting animation on mount and update.
+**Why**: Hard numbers feel static. Animated counters make the data feel alive and give the user a sense of accumulation.
+**Inspiration**: Stripe's revenue counter animation.
 
-**Rationale**: OKLCH is perceptually uniform — a change of 0.01 in lightness looks the same across all hues. This makes dark mode generation trivial (shift lightness + chroma on the same hues). HSL produces uneven contrast and muddy dark mode colors.
-
-**Impact**: Re-theming is one CSS variable change. The entire app shifts hue by adjusting `--hue`.
-
-## Two-column dashboard layout
-
-**Decision**: Use a 2-column grid on desktop (1fr 300px), single column on mobile.
-
-**Rationale**: The original dashboard stacked everything vertically — users had to scroll past 4 metric cards, then 15 level rows. The new layout surfaces the most important information (daily quest, quick actions, badges) in a sidebar column, while the learning path takes the main column.
-
-## Staggered animations
-
-**Decision**: Use framer-motion's `staggerChildren` for dashboard cards and level list items.
-
-**Rationale**: Staggered entries feel more polished than everything appearing at once. Each element gets a moment of attention. The stagger delay is 50ms — fast enough to feel responsive, slow enough to see each item.
-
-## Confetti on quiz correct
-
-**Decision**: Add particle burst animation on correct quiz answers.
-
-**Rationale**: Celebrating small wins increases dopamine and encourages continued engagement. Duolingo and Khan Academy both use celebratory animations. The confetti is subtle (12 small colored rectangles, 800ms duration) — enough to delight, not enough to annoy.
-
-## Reading progress bar
-
-**Decision**: Fixed thin progress bar at the top of lesson pages tracking scroll depth.
-
-**Rationale**: Reading progress bars are a Medium/Dev.to convention that reduces uncertainty — users know how much content remains and can gauge their time commitment. The gradient color matches the app's accent.
-
-## Daily quest gamification
-
-**Decision**: Show a "Daily goal" card on the dashboard with completion tracking.
-
-**Rationale**: Habit formation requires a clear, achievable daily target. The daily quest creates a reason to return to the app every day. The streak counter reinforces consistency. This pattern is validated by Duolingo, Headspace, and every modern learning app.
-
-## No confetti on wrong answer
-
-**Decision**: Wrong quiz answers show an explanation card without celebration particles.
-
-**Rationale**: Wrong answers are learning opportunities, not failures. The explanation card provides the why behind the correct answer. Celebrating wrong answers would dilute the meaning of correct answers and confuse the feedback loop.
-
-## Admin panel as separate lazy route
-
-**Decision**: Route `/admin` is a lazy-loaded page, gated by route only (no auth gate in this version).
-
-**Rationale**: The admin panel is a development tool, not a user-facing feature. Keeping it as a lazy route means it doesn't affect the main bundle size. Future versions should add an admin auth gate.
+### 10. Section headers become purpose statements
+**Decision**: Headers use action verbs and icons: "Continue learning", "Learning path", "Recommended for you".
+**Why**: Generic headers like "Content" or "More" don't guide the user. Each header should answer "What is this section for?" in the user's mental model.
+**Inspiration**: Notion's clear section labeling + Linear's project headers.

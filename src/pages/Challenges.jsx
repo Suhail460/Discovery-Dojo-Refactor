@@ -23,7 +23,7 @@ export default function Challenges() {
     <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto' }}>
       <SEO title="Discovery Challenges" description="Quick-fire drills on interview questions, biases, research methods, and prioritization." />
       <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}><span className="pill pill-lvl"><Swords size={13} /> Rapid drills</span></div>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}><span className="pill pill-level"><Swords size={13} /> Rapid drills</span></div>
         <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Discovery Challenges</h1>
         <p className="font-serif-q" style={{ fontSize: '1.12rem', color: 'var(--ink-2)', maxWidth: '68ch' }}>Fast, single-question drills on the skills that separate good PMs from cargo-cult ones. Each one you nail earns XP.</p>
       </div>

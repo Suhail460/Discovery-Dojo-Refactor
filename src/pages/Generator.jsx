@@ -4,6 +4,7 @@ import { GEN } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import { pick, cap } from '../utils/helpers.js'
 import SEO from '../components/common/SEO.jsx'
+import { EmptyState } from '../components/common/index.js'
 import { useNavigation } from '../hooks/useNavigation.js'
 
 export default function Generator() {
@@ -21,7 +22,7 @@ export default function Generator() {
       <SEO title="Exercise Generator" description="Generate randomized product discovery scenarios. Practice assumptions, research plans, and experiment design." />
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-          <span className="pill pill-lvl"><Dices size={13} /> Practice tool</span>
+          <span className="pill pill-level"><Dices size={13} /> Practice tool</span>
           <span className="pill pill-time"><Inf size={13} /> Unlimited scenarios</span>
         </div>
         <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Discovery Exercise Generator</h1>
@@ -44,7 +45,7 @@ export default function Generator() {
           <Row k="Budget">{cap(g.budget)}</Row>
           <Row k="Timeline">{cap(g.time)}</Row>
           <Row k="Team">{cap(g.team)}</Row>
-          <div style={{ marginTop: 24, padding: 18, background: 'var(--plum-wash)', borderRadius: 14 }}>
+          <div style={{ marginTop: 24, padding: 18, background: 'var(--primary-wash)', borderRadius: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: '"Bricolage Grotesque"', fontWeight: 700, fontSize: '.78rem', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 10 }}><ListChecks size={16} /> Your task</div>
             <ul className="prose-q" style={{ fontSize: '.98rem' }}>
               <li>List the 3 riskiest assumptions and pick which to test first.</li>
@@ -56,10 +57,7 @@ export default function Generator() {
           </div>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '64px 16px', color: 'var(--ink-3)' }}>
-          <Dices size={44} color="var(--line)" style={{ marginBottom: 12 }} />
-          <p>Hit generate to get your first randomized scenario.</p>
-        </div>
+        <EmptyState icon={Dices} title="Ready to practice?" desc="Generate a randomized product discovery scenario and work through the full discovery loop." action actionLabel="Generate first scenario" onAction={generate} />
       )}
     </div>
   )

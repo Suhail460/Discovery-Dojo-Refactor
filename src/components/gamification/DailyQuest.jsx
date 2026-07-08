@@ -10,24 +10,24 @@ export default function DailyQuest() {
   const progress = Math.min(screensDone / target, 1)
 
   return (
-    <div style={{ padding: 20, borderRadius: 22, background: 'linear-gradient(135deg, var(--surface) 0%, var(--plum-wash) 100%)', border: '1px solid var(--line)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <Target size={16} color="var(--plum)" />
-        <span style={{ fontWeight: 700, fontSize: '.82rem', color: 'var(--ink-2)' }}>Daily goal</span>
-        {doneToday && <span className="pill pill-d1" style={{ marginLeft: 'auto' }}><Sparkles size={11} /> Done today</span>}
+    <div className="card" style={{ padding: 18, background: 'var(--surface)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <Target size={15} color="var(--primary)" />
+        <span style={{ fontWeight: 700, fontSize: '.8rem', color: 'var(--ink-2)' }}>Daily goal</span>
+        {doneToday && <span className="pill pill-done" style={{ marginLeft: 'auto' }}><Sparkles size={10} /> Done</span>}
       </div>
-      <div style={{ fontWeight: 700, fontSize: '1.5rem', fontFamily: '"Bricolage Grotesque"', marginBottom: 4 }}>
+      <div className="heading" style={{ fontWeight: 700, fontSize: '1.3rem', marginBottom: 2 }}>
         {doneToday ? 'Great work!' : 'Complete 1 screen'}
       </div>
-      <div style={{ fontSize: '.82rem', color: 'var(--ink-3)', marginBottom: 14 }}>
-        {doneToday ? 'Come back tomorrow for another.' : `${screensDone} / ${target} today`}
+      <div style={{ fontSize: '.8rem', color: 'var(--ink-3)', marginBottom: 12 }}>
+        {doneToday ? 'Come back tomorrow.' : `${screensDone} / ${target} today`}
       </div>
-      <div style={{ height: 6, borderRadius: 6, background: 'var(--line-soft)', overflow: 'hidden' }}>
+      <div className="progress-track" style={{ height: 5, borderRadius: 3 }}>
         <motion.div initial={{ width: 0 }} animate={{ width: `${progress * 100}%` }}
-          style={{ height: '100%', borderRadius: 6, background: 'var(--plum-2)' }} />
+          className="progress-fill" style={{ borderRadius: 3, background: 'var(--primary)' }} />
       </div>
-      <div style={{ marginTop: 12, fontSize: '.76rem', color: 'var(--ink-3)', fontWeight: 600 }}>
-        {masteryPct()}% overall mastery · {state.badges.length} badges earned
+      <div style={{ marginTop: 10, fontSize: '.74rem', color: 'var(--ink-3)', fontWeight: 600 }}>
+        {masteryPct()}% mastery · {state.badges.length} badges
       </div>
     </div>
   )

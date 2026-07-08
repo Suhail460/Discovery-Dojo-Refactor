@@ -84,16 +84,12 @@ export default function Lesson() {
     <div className="fade-in" ref={contentRef} style={{ maxWidth: 780, margin: '0 auto', position: 'relative' }}>
       <SEO title={`Level ${lvl.id}: ${sc.title}`} description={sc.lead} />
 
-      {/* Reading progress bar */}
-      <div style={{ position: 'fixed', top: 'var(--topbar-h, 56px)', left: 0, right: 0, height: 3, zIndex: 25, background: 'var(--line-soft)' }}>
-        <motion.div style={{ height: '100%', background: 'linear-gradient(90deg, var(--plum), var(--accent))', borderRadius: '0 3px 3px 0' }} animate={{ width: readPct + '%' }} transition={{ duration: 0.1 }} />
-      </div>
+      <div className="reading-progress" style={{ width: readPct + '%' }} />
 
-      {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-          <span className="pill pill-lvl"><Layers size={11} /> Level {lvl.id} · {lvl.title}</span>
-          <span className={'pill pill-d' + (sc.diff || lvl.diff)}><Signal size={11} /> {DIFF[sc.diff || lvl.diff]}</span>
+          <span className="pill pill-level"><Layers size={11} /> Level {lvl.id} · {lvl.title}</span>
+          <span className={'pill pill-' + (sc.diff === 3 ? 'hard' : sc.diff === 2 ? 'medium' : 'easy')}><Signal size={11} /> {DIFF[sc.diff || lvl.diff]}</span>
           <span className="pill pill-time"><Clock size={11} /> ~{sc.time || 6} min</span>
           <span className="pill pill-time"><Hash size={11} /> {idx + 1} of {n}</span>
         </div>
@@ -102,15 +98,14 @@ export default function Lesson() {
         <div style={{ display: 'flex', gap: 4, marginTop: 14 }}>
           {lvl.screens.map((_, i) => {
             const d = state.completed.includes(screenId(lvl.id, i))
-            return <span key={i} style={{ height: 4, flex: 1, borderRadius: 4, background: i === idx ? 'var(--accent)' : d ? 'var(--plum-2)' : 'var(--line-soft)' }} />
+            return <span key={i} style={{ height: 4, flex: 1, borderRadius: 4, background: i === idx ? 'var(--primary)' : d ? 'var(--primary)' : 'var(--line-soft)', opacity: d && i !== idx ? 0.5 : 1 }} />
           })}
         </div>
       </div>
 
-      {/* Objectives */}
       {sc.objectives && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ margin: '28px 0', padding: 20, borderRadius: 18, background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: 'var(--plum)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: 'var(--primary)' }}>
             <Target size={16} />
             <span style={{ fontWeight: 700, fontSize: '.82rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-2)' }}>What you&apos;ll learn</span>
           </div>
@@ -118,53 +113,46 @@ export default function Lesson() {
         </motion.div>
       )}
 
-      {/* Prose content */}
       {sc.prose && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} style={{ margin: '32px 0' }}>
           <div className="prose-q" style={{ fontSize: '1.02rem', maxWidth: '70ch', lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: sc.prose }} />
         </motion.div>
       )}
 
-      {/* Analogy callout */}
       {sc.analogy && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ margin: '32px 0' }}>
-          <div style={{ borderRadius: 20, padding: 24, background: 'var(--plum-wash)', border: '1px solid var(--plum-2)', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--plum)', color: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}><Lightbulb size={20} /></div>
+          <div style={{ borderRadius: 16, padding: 20, background: 'var(--primary-wash)', border: '1px solid color-mix(in srgb, var(--primary) 30%, var(--line))', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--primary)', color: '#fff', display: 'grid', placeItems: 'center', flex: 'none' }}><Lightbulb size={20} /></div>
             <div>
-              <h4 style={{ color: 'var(--plum)', marginBottom: 6, fontSize: '1rem' }}>{sc.analogy.title}</h4>
+              <h4 style={{ color: 'var(--primary)', marginBottom: 6, fontSize: '1rem' }}>{sc.analogy.title}</h4>
               <p className="font-serif-q" style={{ margin: 0, fontSize: '1.02rem', lineHeight: 1.6, color: 'var(--ink)' }}>{sc.analogy.body}</p>
             </div>
           </div>
         </motion.div>
       )}
 
-      {/* Mermaid diagram */}
       {sc.mermaid && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ margin: '32px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <GitBranch size={16} color="var(--plum)" />
+            <GitBranch size={16} color="var(--primary)" />
             <span style={{ fontWeight: 700, fontSize: '.82rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-2)' }}>Visual</span>
           </div>
-          <div className="card" style={{ padding: 24 }}>
-            <Mermaid code={sc.mermaid.code} caption={sc.mermaid.cap} />
-          </div>
+          <div className="card" style={{ padding: 24 }}><Mermaid code={sc.mermaid.code} caption={sc.mermaid.cap} /></div>
         </motion.div>
       )}
 
-      {/* Launch CTA */}
       {sc.launch && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ margin: '32px 0' }}>
-          <div className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', flexWrap: 'wrap', background: 'var(--plum-wash)' }}>
+          <div className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'space-between', flexWrap: 'wrap', background: 'var(--primary-wash)' }}>
             <div>
               <h4 style={{ marginBottom: 4, fontSize: '1rem' }}>Hands-on practice</h4>
               <p style={{ margin: 0, color: 'var(--ink-2)', fontSize: '.88rem' }}>This lesson unlocks a live interactive tool.</p>
             </div>
-            <button className="btn btn-plum btn-sm" onClick={() => nav.go(sc.launch.view)}>{sc.launch.label || 'Open tool'}</button>
+            <button className="btn btn-primary btn-sm" onClick={() => nav.go(sc.launch.view)}>{sc.launch.label || 'Open tool'}</button>
           </div>
         </motion.div>
       )}
 
-      {/* Examples */}
       {sc.example && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ margin: '32px 0' }}>
           <div style={{ borderRadius: 20, padding: 24, background: 'var(--surface-2)', border: '1px solid var(--line)' }}>
@@ -176,7 +164,6 @@ export default function Lesson() {
         </motion.div>
       )}
 
-      {/* Mistakes */}
       {sc.mistakes && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ margin: '32px 0' }}>
           <div style={{ borderRadius: 20, padding: 24, background: 'var(--bad-wash)', border: '1px solid var(--bad)' }}>
@@ -188,24 +175,20 @@ export default function Lesson() {
         </motion.div>
       )}
 
-      {/* Quiz */}
       {sc.quiz && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ margin: '32px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Pencil size={16} color="var(--plum)" />
+            <Pencil size={16} color="var(--primary)" />
             <span style={{ fontWeight: 700, fontSize: '.82rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-2)' }}>Interactive exercise & quiz</span>
           </div>
-          <div className="card" style={{ padding: 24 }}>
-            <Quiz key={sid} quiz={sc.quiz} onResult={onQuizResult} />
-          </div>
+          <div className="card" style={{ padding: 24 }}><Quiz key={sid} quiz={sc.quiz} onResult={onQuizResult} /></div>
         </motion.div>
       )}
 
-      {/* Reflection */}
       {sc.reflection && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ margin: '32px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Brain size={16} color="var(--plum)" />
+            <Brain size={16} color="var(--primary)" />
             <span style={{ fontWeight: 700, fontSize: '.82rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-2)' }}>Reflection & confidence</span>
           </div>
           <div className="card" style={{ padding: 24 }}>
@@ -215,7 +198,7 @@ export default function Lesson() {
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
               {CONF.map((t, i) => {
                 const sel = state.confidence[sid] === i
-                return <button key={i} onClick={() => setConfidence(i)} style={{ padding: '8px 14px', borderRadius: 999, border: '1.5px solid ' + (sel ? 'var(--plum)' : 'var(--line)'), background: sel ? 'var(--plum)' : 'var(--surface)', color: sel ? '#fff' : 'var(--ink-2)', fontWeight: 600, fontSize: '.85rem', cursor: 'pointer', transition: 'all .15s' }}>{t}</button>
+                return <button key={i} onClick={() => setConfidence(i)} className={'conf-btn' + (sel ? ' conf-btn-sel' : '')}>{t}</button>
               })}
             </div>
             <div style={{ marginTop: 14 }}><button className="btn btn-ghost btn-sm" onClick={saveReflection}><Save size={15} /> Save reflection</button></div>
@@ -223,11 +206,10 @@ export default function Lesson() {
         </motion.div>
       )}
 
-      {/* Navigation footer */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 48, paddingTop: 24, borderTop: '1px solid var(--line)', marginBottom: 40 }}>
         <button className="btn btn-ghost btn-sm" disabled={idx === 0} onClick={() => nav.gotoScreen(idx - 1)}><ChevronLeft size={16} /> Back</button>
         <div style={{ flex: 1 }} />
-        {done && <span className="pill pill-d1"><Check size={12} /> Completed</span>}
+        {done && <span className="pill pill-done"><Check size={12} /> Completed</span>}
         <button className="btn btn-primary" onClick={complete}>{idx === n - 1 ? 'Finish level' : 'Continue'} <ChevronRight size={16} /></button>
       </div>
     </div>

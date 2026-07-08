@@ -45,13 +45,13 @@ export default function Capstone() {
       <SEO title="Capstone Project" description="Run a complete product discovery end-to-end. Earn your Practitioner badge." />
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-          <span className="pill pill-lvl"><Flag size={13} /> Level 15 · Capstone</span>
+          <span className="pill pill-level"><Flag size={13} /> Level 15 · Capstone</span>
           <span className="pill pill-time"><Save size={13} /> Saves to your account</span>
         </div>
         <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Capstone: run a full discovery</h1>
         <p className="font-serif-q" style={{ fontSize: '1.12rem', color: 'var(--ink-2)', maxWidth: '68ch' }}>Nine stages, one real idea of your choosing. Finish all nine to unlock your feedback report and the Practitioner badge.</p>
         <div style={{ display: 'flex', gap: 5, marginTop: 20 }}>
-          {CAP_STAGES.map((s) => <span key={s.id} style={{ height: 5, flex: 1, borderRadius: 5, background: (draft[s.id] || '').trim() ? 'var(--plum-2)' : 'var(--line-soft)' }} />)}
+          {CAP_STAGES.map((s) => <span key={s.id} style={{ height: 5, flex: 1, borderRadius: 5, background: (draft[s.id] || '').trim() ? 'var(--primary)' : 'var(--line-soft)' }} />)}
         </div>
           <p style={{ marginTop: 10, color: 'var(--ink-3)', fontSize: '.88rem' }}>{filled} of {CAP_STAGES.length} stages complete · {pct}%</p>
       </div>
@@ -63,10 +63,10 @@ export default function Capstone() {
           return (
             <div key={s.id} className="card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: '"Bricolage Grotesque"', fontWeight: 700, fontSize: '.78rem', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 12 }}>
-                <Icon size={16} /> Stage {i + 1}: {s.label} {isFilled && <span className="pill pill-d1" style={{ marginLeft: 8 }}><Check size={12} /> done</span>}
+                <Icon size={16} /> Stage {i + 1}: {s.label} {isFilled && <span className="pill pill-done" style={{ marginLeft: 8 }}><Check size={12} /> done</span>}
               </div>
               <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 12 }}>{s.prompt}</div>
-              {s.link && <button className="btn btn-plum btn-sm" style={{ marginBottom: 12 }} onClick={() => nav.go(s.link)}>Open the simulator</button>}
+              {s.link && <button className="btn btn-secondary btn-sm" style={{ marginBottom: 12 }} onClick={() => nav.go(s.link)}>Open the simulator</button>}
               <textarea className="input" style={{ minHeight: 90, resize: 'vertical' }} value={draft[s.id] || ''} placeholder={s.ph}
                 onChange={(e) => setDraft({ ...draft, [s.id]: e.target.value })} onBlur={saveAll} />
             </div>

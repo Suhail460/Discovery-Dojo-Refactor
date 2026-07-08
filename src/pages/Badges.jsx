@@ -17,7 +17,7 @@ export default function Badges() {
     <div className="fade-in" style={{ maxWidth: 1180, margin: '0 auto' }}>
       <SEO title="Skill Tree & Badges" description="Track your badges, strengths, and weak topics across all 15 levels of product discovery." />
       <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}><span className="pill pill-lvl"><Award size={13} /> Progress</span></div>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}><span className="pill pill-level"><Award size={13} /> Progress</span></div>
         <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Skill tree &amp; badges</h1>
         <p className="font-serif-q" style={{ fontSize: '1.12rem', color: 'var(--ink-2)', maxWidth: '68ch' }}>{got} of {BADGES.length} badges earned. Your weak spots feed back into what the coach nudges you toward.</p>
       </div>
@@ -34,7 +34,7 @@ export default function Badges() {
               <div style={{ fontSize: '2.4rem', lineHeight: 1, marginBottom: 10, filter: unlocked ? 'none' : 'grayscale(1)' }}>{l.emoji}</div>
               <h5 style={{ fontSize: '.92rem', marginBottom: 4 }}>{l.title}</h5>
               <p style={{ fontSize: '.76rem', color: 'var(--ink-3)', margin: 0 }}>{done ? 'Mastered' : unlocked ? pct + '% done' : 'Locked'}</p>
-              {unlocked && !done && <div style={{ width: '100%', height: 6, background: 'var(--line-soft)', borderRadius: 6, marginTop: 8, overflow: 'hidden' }}><div style={{ height: '100%', width: pct + '%', background: 'var(--plum-2)' }} /></div>}
+              {unlocked && !done && <div style={{ width: '100%', height: 6, background: 'var(--line-soft)', borderRadius: 6, marginTop: 8, overflow: 'hidden' }}><div style={{ height: '100%', width: pct + '%', background: 'var(--primary)' }} /></div>}
             </div>
           )
         })}
@@ -59,13 +59,13 @@ export default function Badges() {
       {weak.length > 0 && (
         <div style={{ marginTop: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: '"Bricolage Grotesque"', fontWeight: 700, fontSize: '.78rem', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink-3)' }}><AlertCircle size={16} /> Topics to revisit</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>{weak.map((w) => <span key={w} className="pill pill-d3"><RotateCcw size={13} /> {w}</span>)}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>{weak.map((w) => <span key={w} className="pill pill-hard"><RotateCcw size={13} /> {w}</span>)}</div>
         </div>
       )}
       {strong.length > 0 && (
         <div style={{ marginTop: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: '"Bricolage Grotesque"', fontWeight: 700, fontSize: '.78rem', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink-3)' }}><ThumbsUp size={16} /> Your strengths</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>{strong.map((w) => <span key={w} className="pill pill-d1"><CheckCircle2 size={13} /> {w}</span>)}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>{strong.map((w) => <span key={w} className="pill pill-done"><CheckCircle2 size={13} /> {w}</span>)}</div>
         </div>
       )}
     </div>
