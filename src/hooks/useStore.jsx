@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
@@ -25,6 +25,8 @@ export function ProgressProvider({ children }) {
   const uid = user?.id
   const [state, setState] = useState(DEFAULT)
 
+  const persistRef = useRef(null)
+
   // Load whenever the user changes.
   useEffect(() => {
     if (!uid) { setState(DEFAULT); return }
@@ -34,9 +36,14 @@ export function ProgressProvider({ children }) {
     } catch { setState(DEFAULT) }
   }, [uid])
 
-  // Persist on change.
+  // Debounced persist on change.
   useEffect(() => {
-    if (uid) localStorage.setItem(keyFor(uid), JSON.stringify(state))
+    if (!uid) return
+    clearTimeout(persistRef.current)
+    persistRef.current = setTimeout(() => {
+      localStorage.setItem(keyFor(uid), JSON.stringify(state))
+    }, 500)
+    return () => clearTimeout(persistRef.current)
   }, [state, uid])
 
   const update = useCallback((fn) => setState((s) => {
@@ -91,11 +98,11 @@ export function ProgressProvider({ children }) {
   }
   const reset = () => setState(DEFAULT)
 
-  const value = {
+  const value = useMemo(() => ({
     state, update, addXP, bumpStreak, checkBadges,
     screenId, levelScreens, levelDoneCount, levelDone, maxUnlocked, isUnlocked,
     masteryPct, totalScreens, todayStr, exportData, importData, reset
-  }
+  }), [state, update, addXP, bumpStreak, checkBadges])
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }
 
