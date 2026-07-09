@@ -8,6 +8,7 @@ import Coach from '../coach/Coach.jsx'
 import { useStore } from '../../hooks/useStore.jsx'
 import { useToast } from '../../context/ToastContext.jsx'
 import { useNavigation } from '../../hooks/useNavigation.js'
+import { trackPageView } from '../../services/analyticsService.js'
 
 export default function AppLayout() {
   const store = useStore()
@@ -16,6 +17,8 @@ export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
   const location = useLocation()
+
+  useEffect(() => { trackPageView(location.pathname, document.title) }, [location.pathname])
 
   useEffect(() => { setSidebarOpen(false) }, [location.pathname])
 

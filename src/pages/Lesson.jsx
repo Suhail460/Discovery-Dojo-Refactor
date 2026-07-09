@@ -10,6 +10,7 @@ import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
 import PremiumLock from '../components/common/PremiumLock.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { trackLessonStarted, trackLessonCompleted, trackQuizCompleted, trackLevelComplete } from '../services/analyticsService.js'
 
 const DIFF = ['', 'Beginner', 'Intermediate', 'Advanced']
 const CONF = ['Shaky', 'Getting it', 'Solid', 'Could teach it']
@@ -31,6 +32,8 @@ export default function Lesson() {
   const [reflect, setReflect] = useState(state.reflections[sid] || '')
 
   useEffect(() => { setReflect(state.reflections[sid] || ''); window.scrollTo(0, 0) }, [sid, state])
+
+  useEffect(() => { trackLessonStarted(lvl.id, idx, sc.title) }, [lvl.id, idx, sc.title])
 
   const handleScroll = useCallback(() => {
     if (!contentRef.current) return
@@ -59,6 +62,7 @@ export default function Lesson() {
       return s
     })
     bumpStreak(); setTimeout(checkBadges, 50)
+    trackQuizCompleted(lvl.id, idx, ok ? 1 : 0)
     toast(ok ? '+15 XP · nailed it' : '+5 XP · keep going', ok ? 'party-popper' : 'lightbulb')
   }
 
@@ -76,10 +80,12 @@ export default function Lesson() {
       return ns
     })
     bumpStreak(); setTimeout(checkBadges, 50)
+    trackLessonCompleted(lvl.id, idx, sc.title)
     if (isLast) {
       setTimeout(() => {
         if (levelDone(lvl.id)) {
           const next = lvl.id + 1
+          trackLevelComplete(lvl.id)
           toast(next <= 15 ? `Level ${lvl.id} complete! Level ${next} unlocked.` : 'All 15 levels done. Discovery Master!', 'award')
           nav.go('home')
         }

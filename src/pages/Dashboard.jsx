@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { Play, Mic, Zap, CheckCircle2, Award, Lock, Check, Signal, BookOpen, Dices, Swords, ArrowRight, Sparkles, TrendingUp, Target, Clock, Star, Flag, BarChart3, Edit3 } from 'lucide-react'
 import { CURRICULUM } from '../data/curriculum.js'
@@ -46,9 +46,28 @@ export default function Dashboard() {
   const isGuest = user?.provider === 'guest'
   const [showUpgrade, setShowUpgrade] = useState(false)
 
+  const recentActivity = useMemo(() => {
+    const items = []
+    if (state.completed.length > 0) {
+      const last = state.completed[state.completed.length - 1]
+      const [lvl, sc] = last.split('.')
+      const l = CURRICULUM.find((x) => x.id === Number(lvl))
+      items.push({ type: 'lesson', text: `Completed screen ${Number(sc) + 1} of Level ${lvl}${l ? ': ' + l.title : ''}`, time: 'Recent' })
+    }
+    if (state.interviews.length > 0) {
+      const last = state.interviews[state.interviews.length - 1]
+      items.push({ type: 'interview', text: `Interview scored: ${last.score}/100`, time: last.when, score: last.score })
+    }
+    state.badges.slice(-2).forEach((b) => {
+      const bd = BADGES.find((x) => x.id === b)
+      if (bd) items.push({ type: 'badge', text: `Earned badge: ${bd.name}`, time: 'Recent' })
+    })
+    return items.slice(0, 5)
+  }, [state])
+
   return (
     <div className="dash">
-      <SEO title="Dashboard" description="Your product discovery learning hub." />
+      <SEO title="Dashboard" description={`${user?.name || 'Student'} · ${masteryPct()}% mastery · ${state.xp} XP · Product Discovery learning dashboard.`} />
 
       {isGuest && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 16, background: 'linear-gradient(135deg,var(--primary-wash),var(--blue-wash))', border: '1px solid color-mix(in srgb, var(--primary) 30%, var(--line))', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
@@ -315,10 +334,10 @@ export default function Dashboard() {
               <div className="dash-weekly-bars">
                 {['M','T','W','Th','F','Sa','Su'].map((d, i) => {
                   const active = i < Math.min(streakVal, 7)
-                  const h = [55, 35, 75, 45, 85, 25, 15]
+                  const h = active ? [40, 55, 30, 70, 45, 25, 15] : [20, 15, 10, 18, 12, 8, 5]
                   return (
                     <div key={d} className="dash-weekly-col">
-                      <motion.div initial={{ height: 0 }} animate={{ height: h[i] + '%' }}
+                      <motion.div initial={{ height: 0 }} animate={{ height: (active ? h[i] : h[i]) + '%' }}
                         transition={{ duration: 0.6, delay: 0.4 + i * 0.05 }}
                         className={`dash-weekly-bar ${active ? 'active' : ''}`} />
                       <span className="dash-weekly-lbl">{d}</span>
@@ -326,9 +345,27 @@ export default function Dashboard() {
                   )
                 })}
               </div>
-              <div className="dash-weekly-note">{streakVal} day streak</div>
+              <div className="dash-weekly-note">{streakVal} day streak · {state.completed.length} total screens</div>
             </div>
           </div>
+
+          {/* RECENT ACTIVITY */}
+          {recentActivity.length > 0 && (
+            <div>
+              <div className="dash-sidebar-title"><Clock size={12} /> Recent activity</div>
+              <div className="card" style={{ padding: 12 }}>
+                {recentActivity.map((a, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', borderBottom: i < recentActivity.length - 1 ? '1px solid var(--line-soft)' : 'none', fontSize: '.82rem', color: 'var(--ink-2)' }}>
+                    {a.type === 'badge' ? <span style={{ fontSize: '1rem' }}>🏅</span>
+                      : a.type === 'interview' ? <span style={{ color: 'var(--primary)' }}>🎤</span>
+                      : <span style={{ color: 'var(--ok)' }}>✓</span>}
+                    <span style={{ flex: 1 }}>{a.text}</span>
+                    <span style={{ fontSize: '.7rem', color: 'var(--ink-3)', fontWeight: 600, whiteSpace: 'nowrap' }}>{a.time === 'Recent' ? 'now' : a.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 

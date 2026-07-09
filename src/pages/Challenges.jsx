@@ -5,6 +5,7 @@ import PremiumLock from '../components/common/PremiumLock.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { CHALLENGES } from '../data/gamedata.js'
 import { useStoreActions } from '../hooks/useStore.jsx'
+import { trackChallengeCompleted } from '../services/analyticsService.js'
 
 const CHALLENGE_ICONS = { brain: Brain, search: Search, target: Target, 'check-circle': CheckCircle, 'message-circle': MessageCircle, 'refresh-cw': RefreshCw, list: List, eye: Eye, 'git-branch': GitBranch, 'bar-chart-3': BarChart3, mic: Mic, users: Users, shield: Shield, 'help-circle': HelpCircle }
 
@@ -24,6 +25,7 @@ export default function Challenges() {
     setAnswered((a) => ({ ...a, [id]: j }))
     update((s) => ({ ...s, quizWins: ok ? (s.quizWins || 0) + 1 : s.quizWins }))
     addXP(ok ? 15 : 5); bumpStreak(); setTimeout(checkBadges, 50)
+    if (ok) trackChallengeCompleted(id)
   }
 
   return (

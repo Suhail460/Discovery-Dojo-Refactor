@@ -6,6 +6,7 @@ import { clamp, pick, cap } from '../utils/helpers.js'
 import SEO from '../components/common/SEO.jsx'
 import { useGuestLimits } from '../hooks/useGuestLimits.js'
 import { useToast } from '../context/ToastContext.jsx'
+import { trackInterviewCompleted } from '../services/analyticsService.js'
 
 export default function InterviewSim() {
   const { toast } = useToast()
@@ -74,6 +75,7 @@ export default function InterviewSim() {
     setScore(data)
     update((s) => ({ ...s, interviews: [...s.interviews, { score: overall, when: new Date().toISOString().slice(0, 10), persona: persona.prof }] }))
     addXP(30 + Math.round(overall / 4)); bumpStreak(); setTimeout(checkBadges, 50)
+    trackInterviewCompleted(overall)
     toast(`Interview scored: ${overall}/100`, 'clipboard-list')
   }
 

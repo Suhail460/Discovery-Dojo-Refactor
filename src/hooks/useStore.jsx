@@ -3,13 +3,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useMemo, u
 import { useAuth } from '../context/AuthContext.jsx'
 import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
-
-/* ============================================================================
-   PROGRESS STORE
-   Split into StateContext (triggers re-renders) and ActionsContext (stable).
-   Components that only call actions (e.g. InterviewSim) can use useActions()
-   to avoid re-rendering when state changes.
-   ============================================================================ */
+import { syncProgressToFirestore, loadProgressFromFirestore } from '../services/userService.js'
 
 const StateContext = createContext(null)
 const ActionsContext = createContext(null)
@@ -17,7 +11,7 @@ const ActionsContext = createContext(null)
 const DEFAULT = {
   xp: 0, completed: [], quizScores: {}, quizWins: 0, reflections: {}, confidence: {},
   interviews: [], generated: 0, capstone: {}, capstoneDone: false,
-  streak: 0, lastActive: null, weak: [], strong: [], badges: []
+  streak: 0, lastActive: null, weak: [], strong: [], badges: [], bookmarks: []
 }
 
 const GUEST_KEY = 'dojo_progress_local_guest'
@@ -30,38 +24,55 @@ export function ProgressProvider({ children }) {
   const [state, setState] = useState(DEFAULT)
   const stateRef = useRef(state)
   stateRef.current = state
-
-  const persistRef = useRef(null)
+  const syncTimer = useRef(null)
+  const initDone = useRef(false)
 
   useEffect(() => {
     if (!uid) { setState(DEFAULT); return }
-    try {
-      const raw = localStorage.getItem(keyFor(uid))
-      if (raw) {
-        setState({ ...DEFAULT, ...JSON.parse(raw) })
-      } else if (uid !== 'local_guest') {
-        const guestRaw = localStorage.getItem(GUEST_KEY)
-        if (guestRaw) {
-          localStorage.setItem(keyFor(uid), guestRaw)
-          localStorage.removeItem(GUEST_KEY)
-          try { localStorage.removeItem('dojo_progress_anon') } catch { /* ignore */ }
-          setState({ ...DEFAULT, ...JSON.parse(guestRaw) })
-        } else {
-          setState(DEFAULT)
+    initDone.current = false
+    const load = async () => {
+      let loaded = false
+      if (uid !== 'local_guest') {
+        const fireData = await loadProgressFromFirestore(uid)
+        if (fireData) {
+          setState((prev) => ({ ...prev, ...fireData, completed: fireData.completedLessons || prev.completed }))
+          loaded = true
         }
-      } else {
-        setState(DEFAULT)
       }
-    } catch { setState(DEFAULT) }
+      if (!loaded) {
+        try {
+          const raw = localStorage.getItem(keyFor(uid))
+          if (raw) {
+            setState({ ...DEFAULT, ...JSON.parse(raw) })
+            loaded = true
+          } else if (uid !== 'local_guest') {
+            const guestRaw = localStorage.getItem(GUEST_KEY)
+            if (guestRaw) {
+              localStorage.setItem(keyFor(uid), guestRaw)
+              localStorage.removeItem(GUEST_KEY)
+              try { localStorage.removeItem('dojo_progress_anon') } catch { /* ignore */ }
+              setState({ ...DEFAULT, ...JSON.parse(guestRaw) })
+              loaded = true
+            }
+          }
+        } catch { /* ignore */ }
+      }
+      if (!loaded) setState(DEFAULT)
+      initDone.current = true
+    }
+    load()
   }, [uid])
 
   useEffect(() => {
     if (!uid) return
-    clearTimeout(persistRef.current)
-    persistRef.current = setTimeout(() => {
+    clearTimeout(syncTimer.current)
+    syncTimer.current = setTimeout(() => {
       localStorage.setItem(keyFor(uid), JSON.stringify(state))
-    }, 500)
-    return () => clearTimeout(persistRef.current)
+      if (uid !== 'local_guest') {
+        syncProgressToFirestore(uid, state)
+      }
+    }, 800)
+    return () => clearTimeout(syncTimer.current)
   }, [state, uid])
 
   const update = useCallback((fn) => setState((s) => {
@@ -70,7 +81,7 @@ export function ProgressProvider({ children }) {
   }), [])
 
   const screenId = useCallback((lvl, idx) => `${lvl}.${idx}`, [])
-  const levelScreens = useCallback((lvl) => CURRICULUM.find((l) => l.id === lvl).screens.length, [])
+  const levelScreens = useCallback((lvl) => CURRICULUM.find((l) => l.id === lvl)?.screens.length || 0, [])
   const todayStr = useCallback(() => new Date().toISOString().slice(0, 10), [])
 
   const bumpStreak = useCallback(() => {

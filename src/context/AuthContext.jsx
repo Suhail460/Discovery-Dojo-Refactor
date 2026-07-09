@@ -4,6 +4,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase/config.js'
 import * as authService from '../services/authService.js'
 import * as userService from '../services/userService.js'
+import { trackLogin, trackSignup, trackLogout, trackGuestLogin } from '../services/analyticsService.js'
 
 const AuthContext = createContext(null)
 
@@ -50,18 +51,21 @@ export function AuthProvider({ children }) {
   const loginWithProvider = useCallback(async (providerId) => {
     const firebaseUser = await authService.loginWithProvider(providerId)
     const wasGuest = userRef.current?.provider === 'guest'
+    trackLogin(providerId)
     return handleAuthSuccess(firebaseUser, wasGuest)
   }, [handleAuthSuccess])
 
   const loginWithEmail = useCallback(async (email, password) => {
     const firebaseUser = await authService.loginWithEmail(email, password)
     const wasGuest = userRef.current?.provider === 'guest'
+    trackLogin('email')
     return handleAuthSuccess(firebaseUser, wasGuest)
   }, [handleAuthSuccess])
 
   const signup = useCallback(async (name, email, password) => {
     const firebaseUser = await authService.signup(name, email, password)
     const wasGuest = userRef.current?.provider === 'guest'
+    trackSignup('email')
     return handleAuthSuccess(firebaseUser, wasGuest)
   }, [handleAuthSuccess])
 
@@ -72,12 +76,14 @@ export function AuthProvider({ children }) {
   const loginAsGuest = useCallback(() => {
     userService.setGuestSession()
     setError(null)
+    trackGuestLogin()
     setUser({ ...userService.GUEST_USER, createdAt: Date.now() })
   }, [])
 
   const logout = useCallback(async () => {
     userService.clearGuestSession()
     await authService.logout()
+    trackLogout()
     setUser(null)
     setError(null)
   }, [])

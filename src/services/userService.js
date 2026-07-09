@@ -18,9 +18,22 @@ export const DEFAULT_USER_DOC = {
   xp: 0,
   level: 1,
   streak: 0,
+  lastActive: null,
   badges: [],
   completedLessons: [],
+  completedLevels: [],
   completedQuizzes: [],
+  quizScores: {},
+  quizWins: 0,
+  weak: [],
+  strong: [],
+  reflections: {},
+  confidence: {},
+  interviews: [],
+  generated: 0,
+  capstone: {},
+  capstoneDone: false,
+  bookmarks: [],
   settings: { theme: 'system', notifications: true },
   onboarding: { complete: false, step: 0 }
 }
@@ -60,6 +73,43 @@ export async function ensureUserDocument(firebaseUser) {
   }
 }
 
+const PROGRESS_FIELDS = [
+  'xp', 'streak', 'lastActive', 'badges', 'completedLessons', 'completedLevels',
+  'completedQuizzes', 'quizScores', 'quizWins', 'weak', 'strong', 'reflections',
+  'confidence', 'interviews', 'generated', 'capstone', 'capstoneDone', 'bookmarks'
+]
+
+export async function syncProgressToFirestore(uid, progressState) {
+  if (!uid || uid === 'local_guest') return
+  try {
+    const ref = doc(db, 'users', uid)
+    const data = { lastSync: serverTimestamp() }
+    for (const field of PROGRESS_FIELDS) {
+      if (progressState[field] !== undefined) {
+        data[field] = progressState[field]
+      }
+    }
+    await updateDoc(ref, data)
+  } catch { /* silent fail - local state is always preserved */ }
+}
+
+export async function loadProgressFromFirestore(uid) {
+  if (!uid || uid === 'local_guest') return null
+  try {
+    const ref = doc(db, 'users', uid)
+    const snap = await getDoc(ref)
+    if (!snap.exists()) return null
+    const data = snap.data()
+    const progress = {}
+    for (const field of PROGRESS_FIELDS) {
+      if (data[field] !== undefined) progress[field] = data[field]
+    }
+    return progress
+  } catch {
+    return null
+  }
+}
+
 export async function mergeGuestProgress(oldUserId, newUid) {
   if (!oldUserId) return
   let guestData = null
@@ -70,13 +120,7 @@ export async function mergeGuestProgress(oldUserId, newUid) {
   if (!guestData) return
   try {
     const ref = doc(db, 'users', newUid)
-    await updateDoc(ref, {
-      xp: guestData.xp || 0,
-      streak: guestData.streak || 0,
-      badges: guestData.badges || [],
-      completedLessons: guestData.completedLessons || [],
-      completedQuizzes: guestData.completedQuizzes || []
-    })
+    await updateDoc(ref, { ...DEFAULT_USER_DOC, ...guestData })
   } catch { /* ignore */ }
 }
 
@@ -109,4 +153,12 @@ export async function getUserDocument(uid) {
   } catch {
     return null
   }
+}
+
+export async function addBookmark(uid, bookmark) {
+  if (!uid || uid === 'local_guest') return
+  try {
+    const ref = doc(db, 'users', uid)
+    await updateDoc(ref, { bookmarks: bookmark })
+  } catch { /* ignore */ }
 }

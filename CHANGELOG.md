@@ -1,54 +1,50 @@
 # Changelog
 
-All notable changes to Discovery Dojo are documented here.
+## v1.2.0 (MVP Release)
 
-## [2.0.0] — 2026-07-08
+### New
 
-### Added
-- **Mobile-first layout**: Bottom navigation bar with 5 tabs (Learn, Interview, Practice, Drills, Progress)
-- **Desktop sidebar**: Replaced old sidebar with proper overlay + sticky desktop variant
-- **XP Ring component**: SVG circular progress ring with animated fill showing XP accumulation
-- **StreakBadge component**: Animated streak display with flame icon and day counter
-- **DailyQuest component**: Daily goal tracker with progress bar and completion state
-- **Gamification module**: Reusable game elements in `src/components/gamification/`
-- **Admin dashboard**: Skeleton admin panel at `/admin` with lessons, users, analytics, settings tabs
-- **Firebase scaffolding**: Configuration files at `src/lib/firebase.js` and `src/lib/firestore.js`
-- **Reading progress bar**: Fixed progress indicator on lesson pages tracking scroll depth
-- **Confetti burst animation**: Particle celebration on correct quiz answers
-- **Animated quiz feedback**: Spring-animated correct/incorrect feedback with XP indicator
+- **GA4 Analytics** — `analyticsService.js` with page views, auth events, lesson tracking, quiz completions, interview scores, challenge completions, and level completions. Route tracking via `useLocation`. No-op when `VITE_GA_MEASUREMENT_ID` is not set.
+- **Firestore sync** — authenticated user progress (XP, badges, lessons, quizzes, interviews, capstone, bookmarks) persists to Firestore. Guests continue using localStorage. Seamless migration on signup.
+- **Password strength indicator** — 5-level bar in signup forms (LoginScreen + UpgradeModal).
+- **Success animations** — checkmark with spring animation on login/signup before redirect.
+- **Offline indicator** — amber `WifiOff` badge in TopBar when `navigator.onLine` is false.
+- **Confetti** — reusable confetti component for celebrations.
+- **Empty states** — polished empty states for Generator, Challenges, Badges, and all tool pages.
+- **SEO** — full Open Graph, Twitter Cards, canonical URLs, structured data (JSON-LD), sitemap.xml, robots.txt.
+- **Release documentation** — `MVP_RELEASE_NOTES.md`, updated `README.md`, `CHANGELOG.md`.
 
 ### Changed
-- **Dashboard redesigned**: XP ring hero, stats row with compact cards, two-column layout with learning path + quick actions + daily quest + pro tip
-- **Lesson page redesigned**: Sticky progress bar, improved callout cards, motion animations, cleaner typography
-- **Quiz component redesigned**: Staggered option animations, check/X indicators, confetti on correct, spring feedback
-- **Sidebar redesigned**: Mobile overlay with close button, desktop sticky variant, same-day nav close
-- **Navigation architecture**: Coach accepts controlled open/close state; TopBar has coach toggle button
-- **CSS**: Complete mobile-first rewrite with spacing scale, font scale, responsive breakpoints (560px, 768px, 1000px)
-- **Login screen**: Brand panel hides on mobile, full-width form on small screens
-- **Interview sim**: Added replying/typing indicator with animated dots
+
+- **Architecture** — extracted Firebase auth into `services/authService.js`, Firestore operations into `services/userService.js`, error mapping into `utils/firebaseErrors.js`.
+- **AuthContext** — delegates all external calls to service layer. Added proper cleanup and separation of concerns.
+- **useStore** — now syncs progress to Firestore for authenticated users (debounced 800ms). Loads Firestore data on mount before falling back to localStorage.
+- **LoginScreen** — password strength meter, spinner-in-button during loading, success checkmark animation, toast feedback, ARIA roles, `autoComplete` attributes, privacy notice.
+- **UpgradeModal** — aligned with LoginScreen UX: password strength, spinner-in-button, success toast, ARIA `dialog`.
+- **TopBar** — offline indicator, improved ARIA labels, `role="menu"` on user dropdown.
+- **ProtectedRoute** — better session recovery spinner with `role="status"`.
+- **Dashboard** — recent activity section, personalized SEO description with user stats.
+- **SEO component** — full meta tags (OG, Twitter, canonical, structured data).
+- **Firestore user document** — extended schema with bookmarks, quizScores, reflections, confidence, interviews, capstone, weak/strong tracking.
 
 ### Fixed
-- All 182 lint warnings eliminated (0 errors, 0 warnings)
-- Unescaped entities in JSX
-- Unused imports across all components
-- Hook dependency arrays in useStore.jsx
-- Mobile touch target sizes (44px minimum)
+
+- All ESLint warnings resolved (0 errors, 0 warnings).
+- Build produces no warnings related to source code.
+- Removed unused `AUTH_MODE` constant and dead code paths.
+- Consistent error handling across all auth flows.
+
+### Security
+
+- Firebase config values loaded from environment variables only.
+- Guest sessions stored only in localStorage — no Firebase access.
+- Error messages sanitized through `friendlyError()` — no raw Firebase codes exposed.
+- No secrets or API keys in source code.
 
 ### Performance
-- Main bundle: 408 kB (from 1075 kB in original — 62% reduction)
-- All routes remain lazy-loaded with Suspense
-- Third-party chunks (Mermaid, Lucide, Cytoscape) remain code-split
 
-## [1.0.0] — 2026-06-15
-
-### Added
-- Initial React application with 15-level product discovery curriculum
-- Customer interview simulator with question analysis
-- Exercise generator with randomized scenarios
-- Discovery challenges (rapid drills)
-- Capstone project with 9-stage workflow
-- AI Coach "Mei" with contextual hints
-- Gamification (XP, streaks, badges, skill tree)
-- Dark mode with OKLCH design tokens
-- Progress persistence via localStorage
-- Guest mode + social login (demo auth)
+- Lazy loading via `React.lazy()` for all page components.
+- Suspense boundaries with skeleton loaders.
+- Debounced Firestore writes (800ms) to prevent write storms.
+- Memoized context values to prevent unnecessary re-renders.
+- Optimistic UI updates — local state updates immediately, Firestore syncs async.
