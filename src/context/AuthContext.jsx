@@ -4,9 +4,12 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
+  GithubAuthProvider,
+  OAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
+  sendPasswordResetEmail,
   signOut,
   signInAnonymously
 } from 'firebase/auth'
@@ -17,15 +20,16 @@ const AuthContext = createContext(null)
 
 function normalizeUser(firebaseUser) {
   if (!firebaseUser) return null
+  const displayName = firebaseUser.displayName || ''
   return {
     id: firebaseUser.uid,
     uid: firebaseUser.uid,
-    name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Explorer',
+    name: displayName || firebaseUser.email?.split('@')[0] || 'Explorer',
     email: firebaseUser.email || '',
-    avatar: firebaseUser.photoURL || (firebaseUser.displayName || 'U').charAt(0).toUpperCase(),
+    avatar: firebaseUser.photoURL || displayName.charAt(0).toUpperCase() || 'U',
+    photoURL: firebaseUser.photoURL || '',
     provider: firebaseUser.isAnonymous ? 'guest' : firebaseUser.providerData?.[0]?.providerId || 'email',
-    createdAt: firebaseUser.metadata?.createdAt || Date.now(),
-    photoURL: firebaseUser.photoURL
+    createdAt: firebaseUser.metadata?.createdAt || Date.now()
   }
 }
 
@@ -51,28 +55,34 @@ function friendlyError(error) {
   return 'Something went wrong. Please try again.'
 }
 
-async function ensureUserDocument(user) {
-  if (!user || user.isAnonymous) return
-  const ref = doc(db, 'users', user.uid)
+const DEFAULT_DOC = {
+  xp: 0,
+  level: 1,
+  streak: 0,
+  badges: [],
+  completedLessons: [],
+  completedQuizzes: [],
+  settings: { theme: 'system', notifications: true },
+  onboarding: { complete: false, step: 0 }
+}
+
+async function ensureUserDocument(firebaseUser) {
+  if (!firebaseUser || firebaseUser.isAnonymous) return
+  const ref = doc(db, 'users', firebaseUser.uid)
   const snap = await getDoc(ref)
+  const base = {
+    uid: firebaseUser.uid,
+    name: firebaseUser.displayName || '',
+    email: firebaseUser.email || '',
+    avatar: firebaseUser.photoURL || '',
+    provider: firebaseUser.providerData?.[0]?.providerId || 'email',
+    createdAt: serverTimestamp(),
+    lastLogin: serverTimestamp()
+  }
   if (snap.exists()) {
     await updateDoc(ref, { lastLogin: serverTimestamp() })
   } else {
-    await setDoc(ref, {
-      displayName: user.displayName || '',
-      email: user.email || '',
-      photoURL: user.photoURL || '',
-      provider: user.providerData?.[0]?.providerId || 'email',
-      createdAt: serverTimestamp(),
-      lastLogin: serverTimestamp(),
-      xp: 0,
-      level: 1,
-      streak: 0,
-      badges: [],
-      completedLessons: [],
-      completedQuizzes: [],
-      settings: { theme: 'system', notifications: true }
-    })
+    await setDoc(ref, { ...base, ...DEFAULT_DOC, createdAt: serverTimestamp(), lastLogin: serverTimestamp() })
   }
 }
 
@@ -94,15 +104,25 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function loginWithProvider(providerId) {
-    if (providerId === 'google') {
-      const provider = new GoogleAuthProvider()
-      provider.setCustomParameters({ prompt: 'select_account' })
-      const result = await signInWithPopup(auth, provider)
-      await ensureUserDocument(result.user)
-      setUser(normalizeUser(result.user))
-      return result.user
+    let provider
+    switch (providerId) {
+      case 'google':
+        provider = new GoogleAuthProvider()
+        provider.setCustomParameters({ prompt: 'select_account' })
+        break
+      case 'github':
+        provider = new GithubAuthProvider()
+        break
+      case 'apple':
+        provider = new OAuthProvider('apple.com')
+        break
+      default:
+        throw new Error(`Provider "${providerId}" is not supported.`)
     }
-    throw new Error(`Provider "${providerId}" is not configured yet.`)
+    const result = await signInWithPopup(auth, provider)
+    await ensureUserDocument(result.user)
+    setUser(normalizeUser(result.user))
+    return result.user
   }
 
   async function loginWithEmail(email, password) {
@@ -127,6 +147,12 @@ export function AuthProvider({ children }) {
     return result.user
   }
 
+  async function resetPassword(email) {
+    await sendPasswordResetEmail(auth, email).catch((e) => {
+      throw new Error(friendlyError(e))
+    })
+  }
+
   async function loginAsGuest() {
     const result = await signInAnonymously(auth)
     setUser(normalizeUser(result.user))
@@ -141,7 +167,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, ready, isAuthed: !!user,
-      loginWithProvider, loginWithEmail, signup, loginAsGuest, logout
+      loginWithProvider, loginWithEmail, signup, resetPassword, loginAsGuest, logout
     }}>
       {children}
     </AuthContext.Provider>

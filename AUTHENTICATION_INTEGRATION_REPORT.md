@@ -4,112 +4,150 @@
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/firebase/config.js` | **Replaced** | Firebase SDK initialization using env vars from `.env.local`. Exports `app`, `auth`, `db`, `analytics`. Sets `browserLocalPersistence` for persistent sessions. |
-| `src/context/AuthContext.jsx` | **Replaced** | Removed demo/localStorage auth. Full Firebase Authentication implementation. |
-| `src/router/ProtectedRoute.jsx` | **Created** | Route guard component — shows loading spinner while auth state resolves, renders `<LoginScreen />` if unauthenticated, otherwise renders children. |
+| `src/firebase/config.js` | **Replaced** | Firebase SDK init using env vars. Exports `app`, `auth`, `db`, `analytics`. Sets `browserLocalPersistence` for persistent sessions. |
+| `src/context/AuthContext.jsx` | **Replaced** | Demo/localStorage auth replaced with full Firebase Authentication. |
+| `src/router/ProtectedRoute.jsx` | **Created** | Route guard — loading spinner → LoginScreen → render children. |
 | `src/router/AppRouter.jsx` | **Updated** | Uses `ProtectedRoute` instead of inline `AuthGuard`. |
+| `src/pages/LoginScreen.jsx` | **Updated** | Added Forgot Password flow, wired GitHub/Apple/Google buttons. |
 | `src/main.jsx` | **Updated** | Removed unused `app` import and `console.log`. |
 
 ## Authentication Flow
 
 ### Google Sign-In
 - `loginWithProvider('google')` → `GoogleAuthProvider` + `signInWithPopup`
-- Sets `prompt: 'select_account'` to force account selection
-- On success: creates/updates Firestore `users/{uid}` document, normalizes user, sets state
+- Sets `prompt: 'select_account'` for fresh account selection every time
+- On success: creates/updates Firestore `users/{uid}` document
+
+### GitHub Sign-In
+- `loginWithProvider('github')` → `GithubAuthProvider` + `signInWithPopup`
+- No custom parameters needed
+
+### Apple Sign-In
+- `loginWithProvider('apple')` → `OAuthProvider('apple.com')` + `signInWithPopup`
+- Requires Apple Sign-In configured in Firebase Console
 
 ### Email Signup
-- `signup(name, email, password)` → `createUserWithEmailAndPassword` + `updateProfile` (displayName)
-- Immediately creates Firestore `users/{uid}` document with full profile
+- `signup(name, email, password)` → `createUserWithEmailAndPassword` + `updateProfile({ displayName: name })`
+- Creates Firestore `users/{uid}` document with full profile + defaults
 
 ### Email Login
 - `loginWithEmail(email, password)` → `signInWithEmailAndPassword`
 - Updates `lastLogin` timestamp in Firestore
 
+### Forgot Password
+- `resetPassword(email)` → `sendPasswordResetEmail` with Firebase error handling
+- LoginScreen: "Forgot password?" link → email input → sends reset email → success feedback
+- Back button returns to login
+
 ### Anonymous Guest Login
-- `loginAsGuest()` → `signInAnonymously` — creates a real Firebase anonymous session
-- Guest users persist across browser refreshes
+- `loginAsGuest()` → `signInAnonymously` — real Firebase anonymous session
+- Persists across browser refreshes
+- No Firestore document created (anonymous users have no uid reference)
 
 ### Logout
-- `logout()` → `signOut(auth)` → clears user state
+- `logout()` → `signOut(auth)` → clears user state, returns to login
 
 ### Auth State Persistence
-- `browserLocalPersistence` set in config.js — user stays logged in across browser restarts
-- `onAuthStateChanged` listener handles session restore on mount
+- `browserLocalPersistence` configured in `config.js`
+- `onAuthStateChanged` listener restores session on every page load
+- Refresh keeps the user logged in
 
-## Firestore Document Flow
+## Firestore Document (`users/{uid}`)
 
-### Document: `users/{uid}`
+### Created on first signup/login (Google, GitHub, Apple, Email)
+### Updated with `lastLogin` on subsequent logins
 
-Created on first signup (any method). Updated on subsequent logins.
-
-**Fields:**
+```js
+{
+  uid: string,           // Firebase UID
+  name: string,          // displayName or email username
+  email: string,
+  avatar: string,        // photoURL or empty
+  provider: string,      // "google" | "github" | "apple" | "email"
+  createdAt: Timestamp,  // server timestamp (first login only)
+  lastLogin: Timestamp,  // server timestamp (every login)
+  xp: 0,
+  level: 1,
+  streak: 0,
+  badges: [],
+  completedLessons: [],
+  completedQuizzes: [],
+  settings: { theme: "system", notifications: true },
+  onboarding: { complete: false, step: 0 }
+}
 ```
-displayName: string
-email: string
-photoURL: string
-provider: "google" | "email" | "anonymous"
-createdAt: Timestamp (server)
-lastLogin: Timestamp (server)
-xp: 0
-level: 1
-streak: 0
-badges: []
-completedLessons: []
-completedQuizzes: []
-settings: { theme: "system", notifications: true }
+
+## User Object Shape (App-Facing)
+
+The `normalizeUser()` function maps Firebase `User` → app shape:
+
+```js
+user.id       ← firebaseUser.uid
+user.name     ← displayName || email username || 'Explorer'
+user.email    ← firebaseUser.email || ''
+user.avatar   ← photoURL || first letter of name || 'U'
+user.photoURL ← firebaseUser.photoURL || ''
+user.provider ← "guest" | "google" | "github" | "apple" | "email"
+user.createdAt ← firebaseUser.metadata.createdAt
 ```
-
-### Behavior
-- **Existing user logs in**: `lastLogin` updated via `updateDoc`
-- **New user signs up**: Full document created via `setDoc` with defaults
-- **Anonymous guests**: No Firestore document created (anonymous users have no uid reference)
-
-## Security Improvements
-
-| Area | Before | After |
-|------|--------|-------|
-| **Password storage** | Plaintext in localStorage | Firebase Auth (bcrypt hashed, server-side) |
-| **Session tokens** | localStorage JSON (malleable) | Firebase ID tokens (cryptographically signed) |
-| **User data isolation** | None (all users in one localStorage key) | Firestore security rules per UID |
-| **Social login** | Mocked (fabricated accounts) | Real OAuth via Google |
-| **Error handling** | Basic messages | Mapped Firebase error codes → user-friendly messages |
-| **Loading state** | Synchronous (instant `ready`) | Async with spinner during session resolution |
 
 ## Error Messages Handled
 
-`auth/popup-closed-by-user`, `auth/cancelled-popup-request`, `auth/popup-blocked`, `auth/network-request-failed`, `auth/wrong-password`, `auth/user-not-found`, `auth/invalid-credential`, `auth/email-already-in-use`, `auth/weak-password`, `auth/too-many-requests`, `auth/invalid-email`, `auth/user-disabled`, `auth/operation-not-allowed`
+| Firebase Error Code | User-Friendly Message |
+|---|---|
+| `auth/popup-closed-by-user` | Sign-in cancelled. Try again. |
+| `auth/cancelled-popup-request` | Sign-in cancelled. Try again. |
+| `auth/popup-blocked` | Popup was blocked. Allow popups. |
+| `auth/network-request-failed` | Network error. Check your connection. |
+| `auth/wrong-password` | Wrong password. Try again. |
+| `auth/user-not-found` / `auth/invalid-credential` | Invalid email or password. |
+| `auth/email-already-in-use` | An account with that email already exists. |
+| `auth/weak-password` | Password must be at least 6 characters. |
+| `auth/too-many-requests` | Too many attempts. Try again later. |
+| `auth/invalid-email` | Please enter a valid email address. |
+| `auth/user-disabled` | This account has been disabled. |
+| `auth/operation-not-allowed` | Sign-in method not enabled in Firebase Console. |
 
-## User Object Shape
+## Loading States
 
-The app's existing components expect: `{ id, name, email, avatar, provider, createdAt }`
-
-The `normalizeUser()` function maps Firebase's `User` object to this shape:
-```
-id       ← firebaseUser.uid
-name     ← firebaseUser.displayName || email username || 'Explorer'
-email    ← firebaseUser.email || ''
-avatar   ← firebaseUser.photoURL || first letter of displayName
-provider ← firebaseUser.isAnonymous ? 'guest' : providerId
-createdAt ← firebaseUser.metadata.createdAt
-```
+- **ProtectedRoute** shows spinner with "Loading your session..." while `onAuthStateChanged` resolves
+- **LoginScreen** buttons show "Please wait..." and are disabled during async operations
+- **AuthProvider** sets `ready=true` only after first auth state resolution
 
 ## Manual Firebase Console Settings Required
 
 1. **Enable Authentication providers** at [Firebase Console → Authentication → Sign-in method](https://console.firebase.google.com/project/discovery-dojo/authentication/providers):
    - **Google** — enable, configure OAuth consent screen if needed
+   - **GitHub** — enable, enter Client ID and Client Secret from GitHub OAuth App
+   - **Apple** — enable, configure Apple Service ID (requires Apple Developer membership)
    - **Email/Password** — enable
    - **Anonymous** — enable (for guest login)
 
-2. **Firestore Security Rules** — deploy rules that allow read/write only for the authenticated user's own document:
+2. **Firestore Security Rules**:
    ```js
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
        match /users/{userId} {
-         allow read, write: if request.auth != null && request.auth.uid == userId;
+         allow read, update: if request.auth != null && request.auth.uid == userId;
+         allow create: if request.auth != null && request.auth.uid == userId;
+         allow delete: if false;
        }
      }
    }
    ```
 
-3. **Authorized domains** (if using Firebase Hosting or custom domain) — add to [Authentication → Settings → Authorized domains](https://console.firebase.google.com/project/discovery-dojo/authentication/settings)
+3. **Authorized domains** — add `localhost` and your production domain at [Authentication → Settings → Authorized domains](https://console.firebase.google.com/project/discovery-dojo/authentication/settings)
+
+## Verification Checklist
+
+- [ ] Google Sign-In — popup opens, authenticates, redirects to dashboard
+- [ ] GitHub Sign-In — popup opens, authenticates, redirects to dashboard
+- [ ] Email Signup — creates account, creates Firestore doc with defaults
+- [ ] Email Login — signs in, updates `lastLogin`
+- [ ] Forgot Password — sends reset email, shows confirmation
+- [ ] Guest Login — anonymous session, persists on refresh
+- [ ] Logout — clears session, returns to login
+- [ ] Refresh — stays logged in
+- [ ] Firestore — `users/{uid}` created with all fields on first login
+- [ ] No lint errors, no build errors

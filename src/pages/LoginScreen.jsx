@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Compass, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react'
+import { Compass, Mail, Lock, User, ArrowRight, AlertCircle, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function LoginScreen() {
-  const { loginWithProvider, loginWithEmail, signup, loginAsGuest } = useAuth()
+  const { loginWithProvider, loginWithEmail, signup, resetPassword, loginAsGuest } = useAuth()
   const [mode, setMode] = useState('login')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   async function run(fn) {
     setErr(''); setBusy(true)
@@ -19,7 +20,10 @@ export default function LoginScreen() {
   const submit = (e) => {
     e.preventDefault()
     if (mode === 'login') run(() => loginWithEmail(email, pw))
-    else run(() => signup(name, email, pw))
+    else if (mode === 'signup') run(() => signup(name, email, pw))
+    else if (mode === 'reset') {
+      run(async () => { await resetPassword(email); setResetSent(true) })
+    }
   }
 
   return (
@@ -69,28 +73,54 @@ export default function LoginScreen() {
             {mode === 'signup' && (
               <Field icon={<User size={16} />}><input className="input" style={{ paddingLeft: 40 }} placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required aria-label="Your name" /></Field>
             )}
-            <Field icon={<Mail size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required aria-label="Email address" /></Field>
-            <Field icon={<Lock size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} required aria-label="Password" /></Field>
+            <Field icon={<Mail size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required={mode !== 'reset'} aria-label="Email address" /></Field>
+            {mode !== 'reset' && (
+              <Field icon={<Lock size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="password" placeholder={mode === 'signup' ? 'Create a password' : 'Password'} value={pw} onChange={(e) => setPw(e.target.value)} required aria-label={mode === 'signup' ? 'Create a password' : 'Password'} /></Field>
+            )}
+
+            {mode === 'login' && (
+              <button type="button" onClick={() => { setMode('reset'); setErr(''); setResetSent(false) }}
+                style={{ border: 'none', background: 'none', color: 'var(--ink-3)', fontSize: '.82rem', fontWeight: 600, cursor: 'pointer', textAlign: 'right', padding: 0, marginTop: -4 }}>
+                Forgot password?
+              </button>
+            )}
 
             {err && <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--bad)', fontSize: '.85rem', background: 'var(--bad-wash)', padding: '9px 12px', borderRadius: 10 }}><AlertCircle size={15} /> {err}</div>}
 
+            {mode === 'reset' && resetSent && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--ok)', fontSize: '.85rem', background: 'var(--ok-wash)', padding: '9px 12px', borderRadius: 10 }}>
+                <CheckCircle size={15} /> Reset email sent. Check your inbox.
+              </div>
+            )}
+
             <button className="btn btn-primary" type="submit" disabled={busy} style={{ marginTop: 4 }}>
-              {busy ? 'Please wait...' : mode === 'login' ? 'Sign in' : 'Create account'} <ArrowRight size={16} />
+              {busy ? 'Please wait...' : mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset email'} <ArrowRight size={16} />
             </button>
           </form>
 
           <div style={{ marginTop: 18, fontSize: '.9rem', color: 'var(--ink-3)', textAlign: 'center' }}>
-            {mode === 'login' ? "New here? " : 'Already have an account? '}
-            <button onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setErr('') }}
-              className="btn-ghost-link">
-              {mode === 'login' ? 'Create one' : 'Sign in'}
-            </button>
+            {mode === 'reset' ? (
+              <button onClick={() => { setMode('login'); setErr(''); setResetSent(false) }}
+                className="btn-ghost-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <ArrowLeft size={14} /> Back to sign in
+              </button>
+            ) : (
+              <>
+                {mode === 'login' ? "New here? " : 'Already have an account? '}
+                <button onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setErr('') }}
+                  className="btn-ghost-link">
+                  {mode === 'login' ? 'Create one' : 'Sign in'}
+                </button>
+              </>
+            )}
           </div>
 
-          <button onClick={() => run(loginAsGuest)} disabled={busy}
-            className="guest-link">
-            Explore as guest
-          </button>
+          {mode !== 'reset' && (
+            <button onClick={() => run(loginAsGuest)} disabled={busy}
+              className="guest-link">
+              Explore as guest
+            </button>
+          )}
         </div>
       </div>
     </div>
