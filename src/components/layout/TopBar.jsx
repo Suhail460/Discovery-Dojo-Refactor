@@ -1,20 +1,22 @@
 import { useState, useRef, useEffect } from 'react'
-import { Menu, Zap, Flame, Gauge, Monitor, Moon, Sun, LogOut, Download, Upload, Sparkles, Bell, Award, Play, Mic, Flame as FlameIcon, AlertTriangle } from 'lucide-react'
+import { Menu, Zap, Flame, Gauge, Moon, Sun, LogOut, Download, Upload, Sparkles, Bell, Award, Play, Mic, Flame as FlameIcon, AlertTriangle, WifiOff } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 import { useStore } from '../../hooks/useStore.jsx'
 import { useTheme } from '../../context/ThemeContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useNotifications } from '../../hooks/useNotifications.js'
+import { useOnlineStatus } from '../../hooks/useOnlineStatus.js'
 
 const notifIcons = { award: Award, play: Play, mic: Mic, flame: FlameIcon, 'alert-triangle': AlertTriangle }
 
-const themeIcons = { light: <Moon size={16} />, dark: <Sun size={16} />, system: <Monitor size={16} /> }
+const themeIcons = { light: <Moon size={16} />, dark: <Sun size={16} /> }
 
 export default function TopBar({ nav, onMenu, onCoachToggle }) {
   const { state, masteryPct, exportData, importData } = useStore()
   const { theme, toggle } = useTheme()
   const { user, logout } = useAuth()
   const notifications = useNotifications()
+  const online = useOnlineStatus()
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const fileRef = useRef(null)
@@ -55,6 +57,12 @@ export default function TopBar({ nav, onMenu, onCoachToggle }) {
       <div style={{ fontWeight: 600, color: 'var(--ink-2)', fontSize: '.85rem', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{crumb}</div>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+        {!online && (
+          <div title="You are offline. Progress still saves locally."
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 8px', borderRadius: 999, background: 'var(--amber-wash)', color: 'var(--amber)', fontSize: '.72rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            <WifiOff size={12} /> Offline
+          </div>
+        )}
         <Chip icon={<Zap size={13} />} color="var(--primary)" bg="var(--primary-wash)"><span className="tnum">{state.xp}</span> XP</Chip>
         <Chip icon={<Flame size={13} />} color="var(--amber)" bg="var(--amber-wash)"><span className="tnum">{state.streak || 0}</span></Chip>
         <Chip icon={<Gauge size={13} />} color="var(--green)" bg="var(--green-wash)" hideSm><span className="tnum">{masteryPct()}%</span></Chip>
@@ -63,10 +71,10 @@ export default function TopBar({ nav, onMenu, onCoachToggle }) {
           <IconBtn onClick={() => setNotifOpen((o) => !o)} title="Notifications" aria-haspopup="true" aria-expanded={notifOpen}><Bell size={16} />
             {notifications.length > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: 'var(--bad)' }} />}
           </IconBtn>
-          {notifOpen && (
+           {notifOpen && (
             <div style={{
               position: 'absolute', right: 0, top: 40, width: 280,
-              background: 'color-mix(in srgb, var(--surface) 80%, transparent)', backdropFilter: 'blur(24px)',
+              background: 'var(--surface)',
               border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 8, zIndex: 50,
               maxHeight: 360, overflowY: 'auto'
             }}>
@@ -94,17 +102,17 @@ export default function TopBar({ nav, onMenu, onCoachToggle }) {
             </div>
           )}
         </div>
-        <IconBtn onClick={toggle} title={`Theme: ${theme}`}>{themeIcons[theme] || <Moon size={16} />}</IconBtn>
+        <IconBtn onClick={toggle} title={`${theme === 'light' ? 'Switch to dark' : 'Switch to light'} theme`}>{themeIcons[theme] || <Moon size={16} />}</IconBtn>
 
         <div style={{ position: 'relative' }} ref={popRef}>
-          <button onClick={() => setMenuOpen(!menuOpen)} aria-label="User menu"
-            style={{ width: 34, height: 34, borderRadius: 9, border: 'none', background: 'linear-gradient(135deg,#6D4CFF,#8B5CF6)', color: '#fff', fontWeight: 700, fontSize: '.85rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(109,76,255,0.3)', transition: 'all .2s' }}>
-            {user?.avatar || 'U'}
+          <button onClick={() => setMenuOpen(!menuOpen)} aria-label="User menu" aria-haspopup="true" aria-expanded={menuOpen}
+            style={{ width: 34, height: 34, borderRadius: 9, border: 'none', background: user?.avatar?.startsWith?.('http') ? 'transparent' : 'linear-gradient(135deg,#6D4CFF,#8B5CF6)', color: '#fff', fontWeight: 700, fontSize: '.85rem', cursor: 'pointer', boxShadow: '0 2px 8px rgba(109,76,255,0.3)', transition: 'all .2s', overflow: 'hidden', padding: 0 }}>
+            {user?.avatar?.startsWith?.('http') ? <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user?.avatar || 'U')}
           </button>
           {menuOpen && (
-            <div style={{
+            <div role="menu" style={{
               position: 'absolute', right: 0, top: 44, width: 200,
-              background: 'color-mix(in srgb, var(--surface) 80%, transparent)', backdropFilter: 'blur(24px)',
+              background: 'var(--surface)',
               border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 6, zIndex: 50
             }}>
               <div style={{ padding: '6px 10px', borderBottom: '1px solid var(--line)', marginBottom: 4 }}>
@@ -137,13 +145,12 @@ function Chip({ icon, children, hideSm, color, bg }) {
   )
 }
 
-function IconBtn({ children, onClick, title, style: extraStyle }) {
+function IconBtn({ children, onClick, title }) {
   return (
     <button onClick={onClick} title={title} aria-label={title}
       style={{
         width: 34, height: 34, borderRadius: 9, border: 'none', background: 'transparent',
-        display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer', transition: 'all .15s',
-        ...extraStyle
+        display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer', transition: 'all .15s'
       }}>
       {children}
     </button>
@@ -152,7 +159,7 @@ function IconBtn({ children, onClick, title, style: extraStyle }) {
 
 function MenuItem({ icon, children, onClick, danger }) {
   return (
-    <button onClick={onClick}
+    <button onClick={onClick} role="menuitem"
       style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', border: 'none', background: 'transparent', color: danger ? 'var(--bad)' : 'var(--ink-2)', fontSize: '.84rem', fontWeight: 600, padding: '7px 10px', borderRadius: 8, cursor: 'pointer', transition: 'all .15s' }}>
       {icon} {children}
     </button>

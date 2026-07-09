@@ -20,6 +20,7 @@ const DEFAULT = {
   streak: 0, lastActive: null, weak: [], strong: [], badges: []
 }
 
+const GUEST_KEY = 'dojo_progress_local_guest'
 const keyFor = (uid) => `dojo_progress_${uid || 'anon'}`
 const totalScreens = CURRICULUM.reduce((a, l) => a + l.screens.length, 0)
 
@@ -36,7 +37,21 @@ export function ProgressProvider({ children }) {
     if (!uid) { setState(DEFAULT); return }
     try {
       const raw = localStorage.getItem(keyFor(uid))
-      setState(raw ? { ...DEFAULT, ...JSON.parse(raw) } : DEFAULT)
+      if (raw) {
+        setState({ ...DEFAULT, ...JSON.parse(raw) })
+      } else if (uid !== 'local_guest') {
+        const guestRaw = localStorage.getItem(GUEST_KEY)
+        if (guestRaw) {
+          localStorage.setItem(keyFor(uid), guestRaw)
+          localStorage.removeItem(GUEST_KEY)
+          try { localStorage.removeItem('dojo_progress_anon') } catch { /* ignore */ }
+          setState({ ...DEFAULT, ...JSON.parse(guestRaw) })
+        } else {
+          setState(DEFAULT)
+        }
+      } else {
+        setState(DEFAULT)
+      }
     } catch { setState(DEFAULT) }
   }, [uid])
 

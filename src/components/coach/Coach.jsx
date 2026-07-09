@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, X, ArrowUp } from 'lucide-react'
+import { Sparkles, X, ArrowUp, Lock } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext.jsx'
+import UpgradeModal from '../common/UpgradeModal.jsx'
 import { CURRICULUM } from '../../data/curriculum.js'
 
 const POS_KEY = 'dojo_coach_pos'
@@ -12,6 +14,9 @@ function loadPos() {
 }
 
 export default function Coach({ nav, open: controlledOpen, onClose }) {
+  const { user } = useAuth()
+  const isGuest = user?.provider === 'guest'
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = onClose ? (v) => { if (!v && onClose) onClose(); else setInternalOpen(v) } : setInternalOpen
@@ -86,40 +91,54 @@ export default function Coach({ nav, open: controlledOpen, onClose }) {
               <button onClick={() => setOpen(false)} style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--ink-2)', cursor: 'pointer' }}><X size={16} /></button>
             </div>
 
-            <div ref={bodyRef} style={{ padding: 14, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-              {msgs.map((m, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.18 }}
-                  className={m.who === 'me' ? 'bubble-user' : 'bubble-coach'}
-                  style={{ maxWidth: '85%', fontSize: '.85rem' }}>
-                  {m.text}
-                </motion.div>
-              ))}
-              {typing && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bubble-typing" aria-label="Coach is typing">
-                  <span>·</span><span>·</span><span>·</span>
-                </motion.div>
-              )}
-            </div>
+            {isGuest ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', marginBottom: 16, color: 'var(--ink-3)' }}><Lock size={28} /></div>
+                <h4 style={{ fontSize: '1rem', marginBottom: 6 }}>Premium Feature</h4>
+                <p style={{ fontSize: '.82rem', color: 'var(--ink-3)', lineHeight: 1.5, marginBottom: 20 }}>AI Coach is available with a free account. Get personalized guidance and Socratic mentoring.</p>
+                <button className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '.85rem' }} onClick={() => setShowUpgrade(true)}>Unlock with Premium</button>
+              </div>
+            ) : (
+              <div ref={bodyRef} style={{ padding: 14, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                {msgs.map((m, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.18 }}
+                    className={m.who === 'me' ? 'bubble-user' : 'bubble-coach'}
+                    style={{ maxWidth: '85%', fontSize: '.85rem' }}>
+                    {m.text}
+                  </motion.div>
+                ))}
+                {typing && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bubble-typing" aria-label="Coach is typing">
+                    <span>·</span><span>·</span><span>·</span>
+                  </motion.div>
+                )}
+              </div>
+            )}
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 14px 10px' }}>
-              {chips.map((c) => (
-                <button key={c} onClick={() => send(c)}
-                  style={{ padding: '6px 11px', borderRadius: 999, background: 'var(--surface-2)', border: '1px solid var(--line)', fontSize: '.75rem', fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer' }}>{c}</button>
-              ))}
-            </div>
+            {!isGuest && (
+              <>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 14px 10px' }}>
+                  {chips.map((c) => (
+                    <button key={c} onClick={() => send(c)}
+                      style={{ padding: '6px 11px', borderRadius: 999, background: 'var(--surface-2)', border: '1px solid var(--line)', fontSize: '.75rem', fontWeight: 600, color: 'var(--ink-2)', cursor: 'pointer' }}>{c}</button>
+                  ))}
+                </div>
 
-            <div style={{ display: 'flex', gap: 8, padding: '10px 14px', borderTop: '1px solid var(--line)' }}>
-              <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()}
-                placeholder="Ask or say 'give me a hint'..."
-                style={{ flex: 1, border: '1.5px solid var(--line)', borderRadius: 10, background: 'var(--surface)', color: 'var(--ink)', padding: '9px 12px', fontFamily: 'inherit', fontSize: '.85rem', outline: 'none' }} />
-              <button onClick={() => send()}
-                style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
-                <ArrowUp size={17} />
-              </button>
-            </div>
+                <div style={{ display: 'flex', gap: 8, padding: '10px 14px', borderTop: '1px solid var(--line)' }}>
+                  <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()}
+                    placeholder="Ask or say 'give me a hint'..."
+                    style={{ flex: 1, border: '1.5px solid var(--line)', borderRadius: 10, background: 'var(--surface)', color: 'var(--ink)', padding: '9px 12px', fontFamily: 'inherit', fontSize: '.85rem', outline: 'none' }} />
+                  <button onClick={() => send()}
+                    style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+                    <ArrowUp size={17} />
+                  </button>
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </>
   )
 }

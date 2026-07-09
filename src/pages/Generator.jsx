@@ -4,15 +4,18 @@ import { GEN } from '../data/gamedata.js'
 import { useStoreActions } from '../hooks/useStore.jsx'
 import { pick, cap } from '../utils/helpers.js'
 import SEO from '../components/common/SEO.jsx'
+import { useGuestLimits } from '../hooks/useGuestLimits.js'
 import { EmptyState } from '../components/common/index.js'
 import { useNavigation } from '../hooks/useNavigation.js'
 
 export default function Generator() {
   const nav = useNavigation()
   const { update, addXP, bumpStreak, checkBadges } = useStoreActions()
+  const { getRemaining, consumeOne } = useGuestLimits()
   const [g, setG] = useState(null)
 
   function generate() {
+    if (!consumeOne('generator')) { return }
     setG({ company: pick(GEN.company), problem: pick(GEN.problem), customer: pick(GEN.customer), market: pick(GEN.market), competition: pick(GEN.competition), budget: pick(GEN.budget), time: pick(GEN.time), team: pick(GEN.team), diff: pick(GEN.diff) })
     update((s) => ({ ...s, generated: (s.generated || 0) + 1 })); addXP(10); bumpStreak(); setTimeout(checkBadges, 50)
   }
@@ -23,7 +26,7 @@ export default function Generator() {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <span className="pill pill-level"><Dices size={13} /> Practice tool</span>
-          <span className="pill pill-time"><Inf size={13} /> Unlimited scenarios</span>
+          <span className="pill pill-time"><Inf size={13} /> {getRemaining('generator') < Infinity ? `${getRemaining('generator')}/3 today` : 'Unlimited scenarios'}</span>
         </div>
         <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Discovery Exercise Generator</h1>
         <p className="font-serif-q" style={{ fontSize: '1.12rem', color: 'var(--ink-2)', maxWidth: '68ch' }}>Spin up a randomized, realistic discovery brief. Then work the loop against it: assumptions, research plan, an interview, opportunities, an experiment, and a recommendation.</p>

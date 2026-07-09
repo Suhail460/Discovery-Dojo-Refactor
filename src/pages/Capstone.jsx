@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Flag, Save, Award, Check, Lightbulb, Users, Target, ListChecks, ClipboardList, Search, FileText, BarChart3, Map } from 'lucide-react'
+import PremiumLock from '../components/common/PremiumLock.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { CAP_STAGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import SEO from '../components/common/SEO.jsx'
@@ -9,11 +11,16 @@ import { useToast } from '../context/ToastContext.jsx'
 const CAP_ICONS = { lightbulb: Lightbulb, users: Users, target: Target, 'list-checks': ListChecks, 'clipboard-list': ClipboardList, search: Search, 'file-text': FileText, 'bar-chart-3': BarChart3, map: Map }
 
 export default function Capstone() {
+  const { user } = useAuth()
   const nav = useNavigation()
   const { toast } = useToast()
   const { state, update, checkBadges } = useStore()
   const [draft, setDraft] = useState(() => ({ ...state.capstone }))
   const [report, setReport] = useState(null)
+
+  if (user?.provider === 'guest') {
+    return <PremiumLock feature="Capstone Project" description="Build your full product discovery project from end to end. Apply everything you've learned in a comprehensive real-world scenario." icon={Flag} />
+  }
 
   const filled = CAP_STAGES.filter((s) => (draft[s.id] || '').trim()).length
   const pct = Math.round((filled / CAP_STAGES.length) * 100)

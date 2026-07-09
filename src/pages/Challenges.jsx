@@ -1,14 +1,21 @@
 import { useState } from 'react'
 import { Swords, PartyPopper, Lightbulb, Brain, Search, Target, CheckCircle, MessageCircle, RefreshCw, List, Eye, GitBranch, BarChart3, Mic, Users, Shield, HelpCircle } from 'lucide-react'
 import SEO from '../components/common/SEO.jsx'
+import PremiumLock from '../components/common/PremiumLock.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { CHALLENGES } from '../data/gamedata.js'
 import { useStoreActions } from '../hooks/useStore.jsx'
 
 const CHALLENGE_ICONS = { brain: Brain, search: Search, target: Target, 'check-circle': CheckCircle, 'message-circle': MessageCircle, 'refresh-cw': RefreshCw, list: List, eye: Eye, 'git-branch': GitBranch, 'bar-chart-3': BarChart3, mic: Mic, users: Users, shield: Shield, 'help-circle': HelpCircle }
 
 export default function Challenges() {
+  const { user } = useAuth()
   const { update, addXP, bumpStreak, checkBadges } = useStoreActions()
   const [answered, setAnswered] = useState({})
+
+  if (user?.provider === 'guest') {
+    return <PremiumLock feature="Discovery Challenges" description="Test your product discovery knowledge with quick-fire drills on interview questions, biases, research methods, and prioritization." icon={Swords} />
+  }
 
   function answer(id, j) {
     if (answered[id] !== undefined) return

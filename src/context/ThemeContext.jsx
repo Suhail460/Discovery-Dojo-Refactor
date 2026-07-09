@@ -4,31 +4,16 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 const ThemeContext = createContext(null)
 const KEY = 'dojo_theme'
 
-function resolveSystem() {
-  return window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'
-}
-
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => localStorage.getItem(KEY) || 'system')
+  const [theme, setTheme] = useState(() => localStorage.getItem(KEY) || 'light')
 
   useEffect(() => {
-    const resolved = theme === 'system' ? resolveSystem() : theme
-    document.documentElement.setAttribute('data-theme', resolved)
+    document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem(KEY, theme)
   }, [theme])
 
-  useEffect(() => {
-    if (theme !== 'system') return
-    const mq = window.matchMedia('(prefers-color-scheme:dark)')
-    const handler = () => {
-      document.documentElement.setAttribute('data-theme', mq.matches ? 'dark' : 'light')
-    }
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [theme])
-
   const toggle = useCallback(() => {
-    setTheme((t) => (t === 'light' ? 'dark' : t === 'dark' ? 'system' : 'light'))
+    setTheme((t) => (t === 'light' ? 'dark' : 'light'))
   }, [])
 
   return (

@@ -1,101 +1,33 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from 'react'
-import {
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider,
-  GithubAuthProvider,
-  OAuthProvider,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  sendPasswordResetEmail,
-  signOut,
-  signInAnonymously
-} from 'firebase/auth'
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
-import { auth, db } from '../firebase/config.js'
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '../firebase/config.js'
+import * as authService from '../services/authService.js'
+import * as userService from '../services/userService.js'
 
 const AuthContext = createContext(null)
-
-function normalizeUser(firebaseUser) {
-  if (!firebaseUser) return null
-  const displayName = firebaseUser.displayName || ''
-  return {
-    id: firebaseUser.uid,
-    uid: firebaseUser.uid,
-    name: displayName || firebaseUser.email?.split('@')[0] || 'Explorer',
-    email: firebaseUser.email || '',
-    avatar: firebaseUser.photoURL || displayName.charAt(0).toUpperCase() || 'U',
-    photoURL: firebaseUser.photoURL || '',
-    provider: firebaseUser.isAnonymous ? 'guest' : firebaseUser.providerData?.[0]?.providerId || 'email',
-    createdAt: firebaseUser.metadata?.createdAt || Date.now()
-  }
-}
-
-const FIREBASE_ERRORS = {
-  'auth/popup-closed-by-user': 'Sign-in cancelled. Try again.',
-  'auth/cancelled-popup-request': 'Sign-in cancelled. Try again.',
-  'auth/popup-blocked': 'Popup was blocked. Allow popups and try again.',
-  'auth/network-request-failed': 'Network error. Check your connection.',
-  'auth/wrong-password': 'Wrong password. Try again.',
-  'auth/user-not-found': 'No account found with that email.',
-  'auth/invalid-credential': 'Invalid email or password.',
-  'auth/email-already-in-use': 'An account with that email already exists.',
-  'auth/weak-password': 'Password must be at least 6 characters.',
-  'auth/too-many-requests': 'Too many attempts. Try again later.',
-  'auth/invalid-email': 'Please enter a valid email address.',
-  'auth/user-disabled': 'This account has been disabled.',
-  'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase Console.'
-}
-
-function friendlyError(error) {
-  if (error?.code && FIREBASE_ERRORS[error.code]) return FIREBASE_ERRORS[error.code]
-  if (error?.message) return error.message
-  return 'Something went wrong. Please try again.'
-}
-
-const DEFAULT_DOC = {
-  xp: 0,
-  level: 1,
-  streak: 0,
-  badges: [],
-  completedLessons: [],
-  completedQuizzes: [],
-  settings: { theme: 'system', notifications: true },
-  onboarding: { complete: false, step: 0 }
-}
-
-async function ensureUserDocument(firebaseUser) {
-  if (!firebaseUser || firebaseUser.isAnonymous) return
-  const ref = doc(db, 'users', firebaseUser.uid)
-  const snap = await getDoc(ref)
-  const base = {
-    uid: firebaseUser.uid,
-    name: firebaseUser.displayName || '',
-    email: firebaseUser.email || '',
-    avatar: firebaseUser.photoURL || '',
-    provider: firebaseUser.providerData?.[0]?.providerId || 'email',
-    createdAt: serverTimestamp(),
-    lastLogin: serverTimestamp()
-  }
-  if (snap.exists()) {
-    await updateDoc(ref, { lastLogin: serverTimestamp() })
-  } else {
-    await setDoc(ref, { ...base, ...DEFAULT_DOC, createdAt: serverTimestamp(), lastLogin: serverTimestamp() })
-  }
-}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [ready, setReady] = useState(false)
+  const [error, setError] = useState(null)
+  const userRef = useRef(user)
+  userRef.current = user
+
+  useEffect(() => {
+    if (userService.hasGuestSession()) {
+      setUser({ ...userService.GUEST_USER, createdAt: Date.now() })
+      setReady(true)
+    }
+  }, [])
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        await ensureUserDocument(firebaseUser)
-        setUser(normalizeUser(firebaseUser))
-      } else {
+        userService.clearGuestSession()
+        await userService.ensureUserDocument(firebaseUser)
+        setUser(userService.normalizeUser(firebaseUser))
+      } else if (!userRef.current || userRef.current.provider !== 'guest') {
         setUser(null)
       }
       setReady(true)
@@ -103,70 +35,56 @@ export function AuthProvider({ children }) {
     return unsub
   }, [])
 
-  async function loginWithProvider(providerId) {
-    let provider
-    switch (providerId) {
-      case 'google':
-        provider = new GoogleAuthProvider()
-        provider.setCustomParameters({ prompt: 'select_account' })
-        break
-      case 'github':
-        provider = new GithubAuthProvider()
-        break
-      case 'apple':
-        provider = new OAuthProvider('apple.com')
-        break
-      default:
-        throw new Error(`Provider "${providerId}" is not supported.`)
+  const handleAuthSuccess = useCallback(async (firebaseUser, fromGuest) => {
+    setError(null)
+    if (fromGuest) {
+      const oldId = userRef.current?.id
+      if (oldId) await userService.mergeGuestProgress(oldId, firebaseUser.uid)
     }
-    const result = await signInWithPopup(auth, provider)
-    await ensureUserDocument(result.user)
-    setUser(normalizeUser(result.user))
-    return result.user
-  }
+    await userService.ensureUserDocument(firebaseUser)
+    const normalized = userService.normalizeUser(firebaseUser)
+    setUser(normalized)
+    return normalized
+  }, [])
 
-  async function loginWithEmail(email, password) {
-    const result = await signInWithEmailAndPassword(auth, email, password).catch((e) => {
-      throw new Error(friendlyError(e))
-    })
-    await ensureUserDocument(result.user)
-    setUser(normalizeUser(result.user))
-    return result.user
-  }
+  const loginWithProvider = useCallback(async (providerId) => {
+    const firebaseUser = await authService.loginWithProvider(providerId)
+    const wasGuest = userRef.current?.provider === 'guest'
+    return handleAuthSuccess(firebaseUser, wasGuest)
+  }, [handleAuthSuccess])
 
-  async function signup(name, email, password) {
-    const result = await createUserWithEmailAndPassword(auth, email, password).catch((e) => {
-      throw new Error(friendlyError(e))
-    })
-    if (name) {
-      await updateProfile(result.user, { displayName: name })
-    }
-    await ensureUserDocument(result.user)
-    const updated = { ...result.user, displayName: result.user.displayName || name }
-    setUser(normalizeUser(updated))
-    return result.user
-  }
+  const loginWithEmail = useCallback(async (email, password) => {
+    const firebaseUser = await authService.loginWithEmail(email, password)
+    const wasGuest = userRef.current?.provider === 'guest'
+    return handleAuthSuccess(firebaseUser, wasGuest)
+  }, [handleAuthSuccess])
 
-  async function resetPassword(email) {
-    await sendPasswordResetEmail(auth, email).catch((e) => {
-      throw new Error(friendlyError(e))
-    })
-  }
+  const signup = useCallback(async (name, email, password) => {
+    const firebaseUser = await authService.signup(name, email, password)
+    const wasGuest = userRef.current?.provider === 'guest'
+    return handleAuthSuccess(firebaseUser, wasGuest)
+  }, [handleAuthSuccess])
 
-  async function loginAsGuest() {
-    const result = await signInAnonymously(auth)
-    setUser(normalizeUser(result.user))
-    return result.user
-  }
+  const resetPassword = useCallback(async (email) => {
+    await authService.resetPassword(email)
+  }, [])
 
-  async function logout() {
-    await signOut(auth)
+  const loginAsGuest = useCallback(() => {
+    userService.setGuestSession()
+    setError(null)
+    setUser({ ...userService.GUEST_USER, createdAt: Date.now() })
+  }, [])
+
+  const logout = useCallback(async () => {
+    userService.clearGuestSession()
+    await authService.logout()
     setUser(null)
-  }
+    setError(null)
+  }, [])
 
   return (
     <AuthContext.Provider value={{
-      user, ready, isAuthed: !!user,
+      user, ready, error, isAuthed: !!user,
       loginWithProvider, loginWithEmail, signup, resetPassword, loginAsGuest, logout
     }}>
       {children}

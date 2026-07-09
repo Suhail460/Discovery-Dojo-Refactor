@@ -1,4 +1,6 @@
 import { Award, CheckCircle2, RotateCcw, ThumbsUp, AlertCircle } from 'lucide-react'
+import PremiumLock from '../components/common/PremiumLock.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
 import SEO from '../components/common/SEO.jsx'
@@ -7,9 +9,14 @@ import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 export default function Badges() {
+  const { user } = useAuth()
   const { toast } = useToast()
   const nav = useNavigation(toast)
   const { state, levelDone, levelDoneCount, levelScreens, isUnlocked } = useStore()
+
+  if (user?.provider === 'guest') {
+    return <PremiumLock feature="Skill Tree &amp; Badges" description="Track your achievements, earn badges, and visualize your skill tree progress across all product discovery disciplines." icon={Award} />
+  }
   const got = state.badges.length
   const weak = [...new Set(state.weak)], strong = [...new Set(state.strong)]
 

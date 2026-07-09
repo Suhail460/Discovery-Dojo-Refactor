@@ -8,11 +8,14 @@ import SEO from '../components/common/SEO.jsx'
 import Quiz from '../components/quiz/Quiz.jsx'
 import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
+import PremiumLock from '../components/common/PremiumLock.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const DIFF = ['', 'Beginner', 'Intermediate', 'Advanced']
 const CONF = ['Shaky', 'Getting it', 'Solid', 'Could teach it']
 
 export default function Lesson() {
+  const { user } = useAuth()
   const { toast } = useToast()
   const nav = useNavigation(toast)
   const store = useStore()
@@ -43,6 +46,10 @@ export default function Lesson() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
+
+  if (user?.provider === 'guest' && lvl?.id > 1) {
+    return <PremiumLock feature={`Level ${lvl.id}: ${lvl.title}`} description="Continue your journey by creating a free account. Level 1 is free — unlock all 15 levels when you upgrade." icon={Layers} />
+  }
 
   function onQuizResult(ok) {
     update((s) => {

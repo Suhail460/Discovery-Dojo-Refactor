@@ -4,11 +4,13 @@ import { PERSONA_OPTS } from '../data/gamedata.js'
 import { useStoreActions } from '../hooks/useStore.jsx'
 import { clamp, pick, cap } from '../utils/helpers.js'
 import SEO from '../components/common/SEO.jsx'
+import { useGuestLimits } from '../hooks/useGuestLimits.js'
 import { useToast } from '../context/ToastContext.jsx'
 
 export default function InterviewSim() {
   const { toast } = useToast()
   const { update, addXP, bumpStreak, checkBadges } = useStoreActions()
+  const { getRemaining, consumeOne } = useGuestLimits()
   const [persona, setPersona] = useState(null)
   const [active, setActive] = useState(false)
   const [log, setLog] = useState([])
@@ -22,6 +24,7 @@ export default function InterviewSim() {
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight }, [log, replying])
 
   function start() {
+    if (!consumeOne('interview')) { toast('Daily interview limit reached (3/3). Upgrade for unlimited.', 'alert-triangle'); return }
     const p = { ...form, emoji: PERSONA_OPTS.emoji[form.prof] || '🧑' }
     setPersona(p); setActive(true); setScore(null); setTurns(0); setFlags(zeroFlags())
     const greet = p.personality.startsWith('Talkative') ? `Oh hi! Happy to chat. I'm ${p.name}, I work as a ${p.prof.toLowerCase()}. Fair warning, I can ramble.`
@@ -78,7 +81,7 @@ export default function InterviewSim() {
   return (
     <div className="fade-in" style={{ maxWidth: 1180, margin: '0 auto' }}>
       <SEO title="Interview Simulator" description="Practice customer interviews with a live AI-powered persona. Get scored on your questioning technique." />
-      <Head />
+      <Head remaining={getRemaining('interview')} />
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,320px) 1fr', gap: 24 }}>
         <div className="card" style={{ padding: 24, alignSelf: 'start' }}>
           <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(145deg,#4F46E5,var(--primary))', display: 'grid', placeItems: 'center', fontSize: '2rem', marginBottom: 16 }}>{persona?.emoji || '🧑'}</div>
@@ -134,12 +137,12 @@ export default function InterviewSim() {
   )
 }
 
-function Head() {
+function Head({ remaining }) {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
         <span className="pill pill-level"><Mic size={13} /> Practice tool</span>
-        <span className="pill pill-time"><Inf size={13} /> Unlimited</span>
+        <span className="pill pill-time"><Inf size={13} /> {remaining < Infinity ? `${remaining}/3 today` : 'Unlimited'}</span>
       </div>
       <h1 style={{ fontSize: 'clamp(1.7rem,3.6vw,2.5rem)', marginBottom: 12 }}>Customer Interview Simulator</h1>
       <p className="font-serif-q" style={{ fontSize: '1.12rem', color: 'var(--ink-2)', maxWidth: '68ch' }}>Build a customer, then interview them live. Every question is analyzed for leading language, closed framing, solution-pitching, and depth. End for a full scorecard.</p>

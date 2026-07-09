@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { Play, Mic, Zap, CheckCircle2, Award, Lock, Check, Signal, BookOpen, Dices, Swords, ArrowRight, Sparkles, TrendingUp, Target, Clock, Star, Flag, BarChart3, Edit3 } from 'lucide-react'
 import { CURRICULUM } from '../data/curriculum.js'
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import SEO from '../components/common/SEO.jsx'
 import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
+import UpgradeModal from '../components/common/UpgradeModal.jsx'
 
 const DIFF = ['', 'Beginner', 'Intermediate', 'Advanced']
 
@@ -42,9 +43,25 @@ export default function Dashboard() {
     { icon: <TrendingUp size={19} />, value: masteryPct(), label: 'Mastery', color: 'var(--amber)', bg: 'var(--amber-wash)', progress: masteryPct() / 100, suffix: '%', delta: `+${Math.max(Math.round(masteryPct() * 0.12), 1)}%` },
   ]
 
+  const isGuest = user?.provider === 'guest'
+  const [showUpgrade, setShowUpgrade] = useState(false)
+
   return (
     <div className="dash">
       <SEO title="Dashboard" description="Your product discovery learning hub." />
+
+      {isGuest && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 16, background: 'linear-gradient(135deg,var(--primary-wash),var(--blue-wash))', border: '1px solid color-mix(in srgb, var(--primary) 30%, var(--line))', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--primary)', display: 'grid', placeItems: 'center', color: '#fff', flex: 'none' }}><Sparkles size={20} /></div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontWeight: 700, fontSize: '.95rem', marginBottom: 2 }}>{`You're`} exploring as a guest</div>
+            <div style={{ fontSize: '.82rem', color: 'var(--ink-3)', lineHeight: 1.4 }}>Unlock AI Coach, Challenges, Badges, Capstone, and all 15 levels by creating a free account.</div>
+          </div>
+          <button className="btn btn-primary" style={{ padding: '10px 22px', fontSize: '.85rem', flex: 'none' }} onClick={() => setShowUpgrade(true)}>
+            Create free account <ArrowRight size={15} />
+          </button>
+        </motion.div>
+      )}
 
       {/* ═══════ HERO ROW ═══════ */}
       <div className="dash-hero-row">
@@ -338,6 +355,8 @@ export default function Dashboard() {
           ))}
         </div>
       </motion.div>
+
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   )
 }

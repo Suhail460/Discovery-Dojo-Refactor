@@ -3,24 +3,27 @@ import { ChevronDown, LayoutDashboard, Mic, ClipboardList, Swords, Flag, Award, 
 import { CURRICULUM } from '../../data/curriculum.js'
 import { useStore } from '../../hooks/useStore.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
+import UpgradeModal from '../common/UpgradeModal.jsx'
 
 const NAV = [
   { view: 'home', label: 'Dashboard', icon: LayoutDashboard },
   { view: 'interview', label: 'Interview Simulator', icon: Mic },
   { view: 'generator', label: 'Exercise Generator', icon: ClipboardList },
-  { view: 'challenges', label: 'Discovery Challenges', icon: Swords },
-  { view: 'capstone', label: 'Capstone Project', icon: Flag },
-  { view: 'badges', label: 'Skill Tree & Badges', icon: Award },
+  { view: 'challenges', label: 'Discovery Challenges', icon: Swords, premium: true },
+  { view: 'capstone', label: 'Capstone Project', icon: Flag, premium: true },
+  { view: 'badges', label: 'Skill Tree & Badges', icon: Award, premium: true },
 ]
 
 export default function Sidebar({ nav, open, onClose, onReset: _onReset }) {
   const { view, level } = nav.current
   const { levelDone, isUnlocked, maxUnlocked } = useStore()
   const { user } = useAuth()
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const [pathOpen, setPathOpen] = useState(true)
   const mu = maxUnlocked()
 
-  const avatarLetter = user?.avatar || (user?.name ? user.name.trim().charAt(0).toUpperCase() : 'U')
+  const isAvatarUrl = user?.avatar?.startsWith?.('http')
+  const avatarLetter = isAvatarUrl ? '' : (user?.avatar || (user?.name ? user.name.trim().charAt(0).toUpperCase() : 'U'))
 
   return (
     <>
@@ -47,12 +50,14 @@ export default function Sidebar({ nav, open, onClose, onReset: _onReset }) {
             <div className="sb-section-header" id="sb-practice-heading">Practice</div>
             {NAV.map((n) => {
               const active = view === n.view
+              const guestLocked = n.premium && user?.provider === 'guest'
               return (
                 <button key={n.view}
                   onClick={() => { nav.go(n.view); onClose() }}
                   className={'sb-nav-item' + (active ? ' active' : '')}>
                   <span className="sb-nav-icon"><n.icon size={20} /></span>
-                  <span>{n.label}</span>
+                  <span style={{ flex: 1 }}>{n.label}</span>
+                  {guestLocked && <Lock size={12} className="sb-lesson-lock" />}
                 </button>
               )
             })}
@@ -105,7 +110,7 @@ export default function Sidebar({ nav, open, onClose, onReset: _onReset }) {
             <div className="sb-go-pro-sub">
               AI Coach &middot; Interview Packs &middot; Certificates
             </div>
-            <button className="sb-go-pro-btn" onClick={() => {}}>
+            <button className="sb-go-pro-btn" onClick={() => setShowUpgrade(true)}>
               Upgrade Now <ArrowRight size={14} />
             </button>
           </div>
@@ -113,8 +118,8 @@ export default function Sidebar({ nav, open, onClose, onReset: _onReset }) {
 
         {/* ═══ PROFILE ═══ */}
         <div className="sb-profile" onClick={() => {}}>
-          <div className="sb-profile-avatar">
-            {avatarLetter}
+          <div className="sb-profile-avatar" style={isAvatarUrl ? { overflow: 'hidden', padding: 0 } : {}}>
+            {isAvatarUrl ? <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : avatarLetter}
           </div>
           <div className="sb-profile-info">
             <div className="sb-profile-name">{user?.name || 'Guest'}</div>
@@ -122,6 +127,7 @@ export default function Sidebar({ nav, open, onClose, onReset: _onReset }) {
           </div>
           <ChevronDown size={16} className="sb-profile-arrow" />
         </div>
+        <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
       </aside>
     </>
   )
