@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
-import { Play, Mic, Zap, CheckCircle2, Award, Lock, Check, Signal, BookOpen, Dices, Swords, ArrowRight, Sparkles, TrendingUp, Target, Clock, Star, Flag, BarChart3, Edit3 } from 'lucide-react'
+import { Play, Mic, Zap, CheckCircle2, Award, Lock, Check, Signal, BookOpen, Dices, Swords, ArrowRight, Sparkles, TrendingUp, Target, Clock, Star, Flag, BarChart3 } from 'lucide-react'
 import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
@@ -27,8 +27,11 @@ export default function Dashboard() {
   const mu = maxUnlocked()
   const doneLevels = CURRICULUM.filter((l) => levelDone(l.id)).length
   const first = state.completed.length === 0
-  const nextLevel = CURRICULUM.find((l) => !levelDone(l.id) && isUnlocked(l.id))
+  const nextLevel = CURRICULUM.find((l) => (!levelDone(l.id) && isUnlocked(l.id)))
   const streakVal = state.streak || 0
+  const resumePos = state.resumePosition
+  const continueLevel = resumePos && !levelDone(resumePos.level) ? resumePos.level : mu
+  const continueScreen = resumePos && resumePos.level === continueLevel ? resumePos.screen : 0
 
   const QUICK = [
     { icon: Mic, label: 'Interview Sim', desc: 'Practice with personas', action: 'interview' },
@@ -126,8 +129,8 @@ export default function Dashboard() {
             <div className="dash-hero-actions">
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                 className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '1rem', minHeight: 50 }}
-                onClick={() => nav.openLevel(mu)}>
-                <Play size={18} /> {first ? 'Begin your journey' : 'Continue learning'}
+                onClick={() => resumePos ? nav.openLevel(continueLevel, continueScreen) : nav.openLevel(mu)}>
+                <Play size={18} /> {first ? 'Begin your journey' : resumePos ? 'Resume learning' : 'Continue learning'}
               </motion.button>
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                 className="btn btn-secondary" onClick={() => nav.go('interview')}>
@@ -200,7 +203,7 @@ export default function Dashboard() {
           {nextLevel && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.45 }}>
               <div className="dash-section-title"><Play size={15} /> Continue learning</div>
-              <div className="card dash-continue-card" onClick={() => nav.openLevel(nextLevel.id)} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && nav.openLevel(nextLevel.id)} role="button" aria-label={`Continue Level ${nextLevel.id}: ${nextLevel.title}`}>
+              <div className="card dash-continue-card" onClick={() => resumePos ? nav.openLevel(continueLevel, continueScreen) : nav.openLevel(nextLevel.id)} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && (resumePos ? nav.openLevel(continueLevel, continueScreen) : nav.openLevel(nextLevel.id))} role="button" aria-label={`Continue Level ${nextLevel.id}: ${nextLevel.title}`}>
                 <div className="dash-continue-left">
                   <div className="dash-continue-icon">{nextLevel.emoji}</div>
                   <div className="dash-continue-body">
@@ -231,8 +234,8 @@ export default function Dashboard() {
                   <CircularProgress value={levelDoneCount(nextLevel.id)} max={levelScreens(nextLevel.id)} size={80} stroke={6} />
                   <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                     className="btn btn-primary dash-continue-btn"
-                    onClick={(e) => { e.stopPropagation(); nav.openLevel(nextLevel.id) }}>
-                    <Play size={16} /> Continue
+                    onClick={(e) => { e.stopPropagation(); resumePos ? nav.openLevel(continueLevel, continueScreen) : nav.openLevel(nextLevel.id) }}>
+                    <Play size={16} /> {resumePos ? 'Resume' : 'Continue'}
                   </motion.button>
                 </div>
               </div>
@@ -418,18 +421,18 @@ function DailyGoalCard({ state, masteryPct, streakVal }) {
   const screensDone = state.completed.length
   const target = Math.max(1, Math.ceil(streakVal / 3) + 1)
   const progress = Math.min(screensDone / target, 1)
+  const learningTime = state.learningTime || 0
+  const ltH = Math.floor(learningTime / 3600)
+  const ltM = Math.floor((learningTime % 3600) / 60)
 
   return (
     <div className="dash-goal">
       <div className="dash-goal-header">
         <span className="dash-goal-title">Daily goal</span>
-        <button style={{
-          border: 'none', background: 'var(--primary-wash)', color: 'var(--primary)',
-          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-          fontSize: '.7rem', fontWeight: 700, padding: '5px 10px', borderRadius: 8
-        }}>
-          <Edit3 size={11} /> Edit
-        </button>
+        <span style={{ fontSize: '.7rem', color: 'var(--ink-3)', fontWeight: 600 }}>
+          <Clock size={11} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+          {ltH > 0 ? `${ltH}h ${ltM}m` : `${ltM}m`} total
+        </span>
       </div>
       <div className="dash-goal-body">
         <CircularProgress value={screensDone} max={target} size={80} stroke={6} />

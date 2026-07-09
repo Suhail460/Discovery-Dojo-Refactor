@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Layers, Signal, Clock, Hash, Target, Lightbulb, GitBranch, Building2, CornerDownRight, AlertTriangle, XCircle, Pencil, Brain, Save, Check, ChevronLeft, ChevronRight } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Layers, Signal, Clock, Hash, Target, Lightbulb, GitBranch, Building2, CornerDownRight, AlertTriangle, XCircle, Pencil, Brain, Save, Check, ChevronLeft, ChevronRight, Award } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { CURRICULUM } from '../data/curriculum.js'
 import { useStore } from '../hooks/useStore.jsx'
 import Mermaid from '../components/diagrams/Mermaid.jsx'
@@ -11,16 +11,29 @@ import { useToast } from '../context/ToastContext.jsx'
 import PremiumLock from '../components/common/PremiumLock.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { trackLessonStarted, trackLessonCompleted, trackQuizCompleted, trackLevelComplete } from '../services/analyticsService.js'
+import Confetti from '../components/common/Confetti.jsx'
 
 const DIFF = ['', 'Beginner', 'Intermediate', 'Advanced']
 const CONF = ['Shaky', 'Getting it', 'Solid', 'Could teach it']
+
+const STEPS = ['Overview', 'Learn', 'Visualize', 'Practice', 'Quiz', 'Reflect', 'Complete']
+
+const STEP_ICONS = [Target, Lightbulb, GitBranch, Building2, Pencil, Brain, Award]
+
+function currentStep(sc) {
+  if (sc.quiz) return 4
+  if (sc.reflection) return 5
+  if (sc.mermaid) return 2
+  if (sc.prose || sc.analogy) return 1
+  return 0
+}
 
 export default function Lesson() {
   const { user } = useAuth()
   const { toast } = useToast()
   const nav = useNavigation(toast)
   const store = useStore()
-  const { state, update, addXP, bumpStreak, checkBadges, screenId, levelDone } = store
+  const { state, update, addXP, bumpStreak, checkBadges, screenId, levelDone, saveResumePosition } = store
   const lvl = CURRICULUM.find((x) => x.id === nav.current.level)
   const n = lvl.screens.length
   const idx = Math.min(nav.current.screen || 0, n - 1)
@@ -30,10 +43,15 @@ export default function Lesson() {
   const contentRef = useRef(null)
   const [readPct, setReadPct] = useState(0)
   const [reflect, setReflect] = useState(state.reflections[sid] || '')
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
 
   useEffect(() => { setReflect(state.reflections[sid] || ''); window.scrollTo(0, 0) }, [sid, state])
 
-  useEffect(() => { trackLessonStarted(lvl.id, idx, sc.title) }, [lvl.id, idx, sc.title])
+  useEffect(() => {
+    trackLessonStarted(lvl.id, idx, sc.title)
+    saveResumePosition(lvl.id, idx)
+  }, [lvl.id, idx, sc.title, saveResumePosition])
 
   const handleScroll = useCallback(() => {
     if (!contentRef.current) return
@@ -54,6 +72,8 @@ export default function Lesson() {
     return <PremiumLock feature={`Level ${lvl.id}: ${lvl.title}`} description="Continue your journey by creating a free account. Level 1 is free — unlock all 15 levels when you upgrade." icon={Layers} />
   }
 
+  const step = currentStep(sc)
+
   function onQuizResult(ok) {
     update((s) => {
       s.quizScores = { ...s.quizScores, [sid]: ok ? 1 : 0 }
@@ -69,35 +89,75 @@ export default function Lesson() {
   function setConfidence(v) { update((s) => ({ ...s, confidence: { ...s.confidence, [sid]: v } })) }
   function saveReflection() {
     update((s) => ({ ...s, reflections: { ...s.reflections, [sid]: reflect } }))
-    if (reflect.trim()) { addXP(5); toast('Reflection saved to your memory.', 'brain') }
+    if (reflect.trim()) { addXP(5); toast('Reflection saved. +5 XP', 'brain') }
   }
 
   function complete() {
     const isLast = idx === n - 1
+    const wasNew = !state.completed.includes(sid)
     update((s) => {
       const ns = { ...s, reflections: { ...s.reflections, [sid]: reflect } }
-      if (!ns.completed.includes(sid)) { ns.completed = [...ns.completed, sid]; ns.xp += 20 }
+      if (wasNew) { ns.completed = [...ns.completed, sid]; ns.xp += 20 }
       return ns
     })
     bumpStreak(); setTimeout(checkBadges, 50)
     trackLessonCompleted(lvl.id, idx, sc.title)
+    if (wasNew) {
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 2000)
+    }
     if (isLast) {
+      setShowCelebration(true)
       setTimeout(() => {
         if (levelDone(lvl.id)) {
           const next = lvl.id + 1
           trackLevelComplete(lvl.id)
           toast(next <= 15 ? `Level ${lvl.id} complete! Level ${next} unlocked.` : 'All 15 levels done. Discovery Master!', 'award')
+          setShowCelebration(false)
           nav.go('home')
         }
-      }, 60)
+      }, 1500)
     } else nav.gotoScreen(idx + 1)
   }
 
   return (
     <div className="fade-in" ref={contentRef} style={{ maxWidth: 780, margin: '0 auto', position: 'relative' }}>
       <SEO title={`Level ${lvl.id}: ${sc.title}`} description={sc.lead} />
+      <Confetti active={showConfetti} duration={2000} />
 
       <div className="reading-progress" style={{ width: readPct + '%' }} />
+
+      {/* Step indicator */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, padding: '4px 0' }}>
+        {STEPS.map((s, i) => {
+          const active = i <= step
+          const Icon = STEP_ICONS[i]
+          return (
+            <div key={s} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, opacity: active ? 1 : 0.3 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: i < step ? 'var(--ok)' : i === step ? 'var(--primary)' : 'var(--surface-3)', display: 'grid', placeItems: 'center', color: i < step || i === step ? '#fff' : 'var(--ink-3)', transition: 'all .3s' }}>
+                {i < step ? <Check size={14} /> : <Icon size={14} />}
+              </div>
+              <span style={{ fontSize: '.6rem', fontWeight: 600, color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>{s}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Level celebration overlay */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'grid', placeItems: 'center', background: 'oklch(0 0 0 / 0.6)', backdropFilter: 'blur(8px)' }}>
+            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
+              style={{ textAlign: 'center', color: '#fff' }}>
+              <motion.div animate={{ rotate: [0, -10, 10, -10, 0] }} transition={{ duration: 0.5 }}
+                style={{ fontSize: '4rem', marginBottom: 16 }}>🏆</motion.div>
+              <h2 style={{ color: '#fff', fontSize: '1.8rem', marginBottom: 8 }}>Level {lvl.id} Complete!</h2>
+              <p style={{ color: 'oklch(1 0 0 / 0.7)', fontSize: '1.05rem' }}>Level {lvl.id + 1} unlocked. Keep going!</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -192,7 +252,7 @@ export default function Lesson() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ margin: '32px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Pencil size={16} color="var(--primary)" />
-            <span style={{ fontWeight: 700, fontSize: '.82rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-2)' }}>Interactive exercise & quiz</span>
+            <span style={{ fontWeight: 700, fontSize: '.82rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-2)' }}>Quiz</span>
           </div>
           <div className="card" style={{ padding: 24 }}><Quiz key={sid} quiz={sc.quiz} onResult={onQuizResult} /></div>
         </motion.div>
@@ -223,7 +283,9 @@ export default function Lesson() {
         <button className="btn btn-ghost btn-sm" disabled={idx === 0} onClick={() => nav.gotoScreen(idx - 1)}><ChevronLeft size={16} /> Back</button>
         <div style={{ flex: 1 }} />
         {done && <span className="pill pill-done"><Check size={12} /> Completed</span>}
-        <button className="btn btn-primary" onClick={complete}>{idx === n - 1 ? 'Finish level' : 'Continue'} <ChevronRight size={16} /></button>
+        <button className="btn btn-primary" onClick={complete} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          {idx === n - 1 ? 'Finish level' : 'Continue'} <ChevronRight size={16} />
+        </button>
       </div>
     </div>
   )

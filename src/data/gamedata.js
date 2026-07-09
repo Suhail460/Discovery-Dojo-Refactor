@@ -92,6 +92,21 @@ export const PERSONA_OPTS = {
   emoji: { 'Marketing manager': '📦', 'Freelance designer': '🎨', Nurse: '🩺', 'Software engineer': '💻', 'Small-business owner': '🏪', 'College student': '🎓', 'Financial analyst': '📈', 'Delivery driver': '🚚', 'Product manager': '📱', Teacher: '📚' }
 }
 
+export const ACHIEVEMENTS = [
+  { id: 'first_lesson', name: 'First Lesson', desc: 'Complete your first lesson', emoji: '📖', check: (s) => s.completed >= 1 },
+  { id: 'first_quiz', name: 'First Quiz', desc: 'Complete your first quiz', emoji: '✍️', check: (s) => s.quizzes >= 1 },
+  { id: 'xp_100', name: 'Century', desc: 'Earn 100 XP', emoji: '💯', check: (s) => s.xp >= 100 },
+  { id: 'xp_500', name: 'XP Apprentice', desc: 'Earn 500 XP', emoji: '⭐', check: (s) => s.xp >= 500 },
+  { id: 'xp_1000', name: 'XP Master', desc: 'Earn 1,000 XP', emoji: '🌟', check: (s) => s.xp >= 1000 },
+  { id: 'ten_lessons', name: 'Dedicated', desc: 'Complete 10 lessons', emoji: '📚', check: (s) => s.completed >= 10 },
+  { id: 'five_interviews', name: 'People Person', desc: 'Complete 5 interviews', emoji: '🎙️', check: (s) => s.interviews >= 5 },
+  { id: 'seven_day_streak', name: 'Unstoppable', desc: '7-day streak', emoji: '🔥', check: (s) => s.streak >= 7 },
+  { id: 'five_badges', name: 'Collector', desc: 'Earn 5 badges', emoji: '🏅', check: (s) => s.badges.length >= 5 },
+  { id: 'all_badges', name: 'Completionist', desc: 'Earn all badges', emoji: '🏆', check: (s) => s.badges.length >= 14 },
+  { id: 'daily_goal', name: 'Daily Driver', desc: 'Hit your daily goal', emoji: '🎯', check: () => false },
+  { id: 'capstone', name: 'Practitioner', desc: 'Complete the capstone', emoji: '🏁', check: (s) => s.capstoneDone },
+]
+
 export const CAP_STAGES = [
   { id: 'idea', label: 'Choose your idea', icon: 'lightbulb', prompt: "What product or feature idea will you run discovery on? Describe it in a sentence or two, plus who it's for.", ph: 'e.g. A tool that auto-summarizes long Slack threads for busy managers who miss context after meetings.' },
   { id: 'research', label: 'Research the customer', icon: 'users', prompt: 'Who is your target customer and what do you already know (vs assume)? List your top 2 assumptions.', ph: 'Target: mid-level managers. Assume: they lose context daily. Assume: they trust an AI summary.' },

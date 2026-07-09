@@ -20,6 +20,7 @@ export const DEFAULT_USER_DOC = {
   streak: 0,
   lastActive: null,
   badges: [],
+  achievements: [],
   completedLessons: [],
   completedLevels: [],
   completedQuizzes: [],
@@ -34,6 +35,9 @@ export const DEFAULT_USER_DOC = {
   capstone: {},
   capstoneDone: false,
   bookmarks: [],
+  resumePosition: null,
+  learningTime: 0,
+  dailyLog: {},
   settings: { theme: 'system', notifications: true },
   onboarding: { complete: false, step: 0 }
 }
@@ -74,9 +78,10 @@ export async function ensureUserDocument(firebaseUser) {
 }
 
 const PROGRESS_FIELDS = [
-  'xp', 'streak', 'lastActive', 'badges', 'completedLessons', 'completedLevels',
+  'xp', 'streak', 'lastActive', 'badges', 'achievements', 'completedLessons', 'completedLevels',
   'completedQuizzes', 'quizScores', 'quizWins', 'weak', 'strong', 'reflections',
-  'confidence', 'interviews', 'generated', 'capstone', 'capstoneDone', 'bookmarks'
+  'confidence', 'interviews', 'generated', 'capstone', 'capstoneDone', 'bookmarks',
+  'resumePosition', 'learningTime', 'dailyLog'
 ]
 
 export async function syncProgressToFirestore(uid, progressState) {

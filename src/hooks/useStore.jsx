@@ -2,8 +2,9 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { CURRICULUM } from '../data/curriculum.js'
-import { BADGES } from '../data/gamedata.js'
+import { BADGES, ACHIEVEMENTS } from '../data/gamedata.js'
 import { syncProgressToFirestore, loadProgressFromFirestore } from '../services/userService.js'
+import { trackBadgeEarned } from '../services/analyticsService.js'
 
 const StateContext = createContext(null)
 const ActionsContext = createContext(null)
@@ -11,7 +12,8 @@ const ActionsContext = createContext(null)
 const DEFAULT = {
   xp: 0, completed: [], quizScores: {}, quizWins: 0, reflections: {}, confidence: {},
   interviews: [], generated: 0, capstone: {}, capstoneDone: false,
-  streak: 0, lastActive: null, weak: [], strong: [], badges: [], bookmarks: []
+  streak: 0, lastActive: null, weak: [], strong: [], badges: [], bookmarks: [],
+  resumePosition: null, learningTime: 0, dailyLog: {}, achievements: []
 }
 
 const GUEST_KEY = 'dojo_progress_local_guest'
@@ -25,11 +27,10 @@ export function ProgressProvider({ children }) {
   const stateRef = useRef(state)
   stateRef.current = state
   const syncTimer = useRef(null)
-  const initDone = useRef(false)
+  const sessionStart = useRef(null)
 
   useEffect(() => {
     if (!uid) { setState(DEFAULT); return }
-    initDone.current = false
     const load = async () => {
       let loaded = false
       if (uid !== 'local_guest') {
@@ -58,9 +59,17 @@ export function ProgressProvider({ children }) {
         } catch { /* ignore */ }
       }
       if (!loaded) setState(DEFAULT)
-      initDone.current = true
+      sessionStart.current = Date.now()
     }
     load()
+    return () => {
+      if (sessionStart.current) {
+        const elapsed = Math.round((Date.now() - sessionStart.current) / 1000)
+        if (elapsed > 10) {
+          setState((s) => ({ ...s, learningTime: (s.learningTime || 0) + elapsed }))
+        }
+      }
+    }
   }, [uid])
 
   useEffect(() => {
@@ -90,11 +99,20 @@ export function ProgressProvider({ children }) {
       if (s.lastActive === t) return s
       const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
       const streak = s.lastActive === y ? (s.streak || 0) + 1 : 1
-      return { ...s, streak, lastActive: t }
+      const dl = { ...(s.dailyLog || {}), [t]: (s.dailyLog?.[t] || 0) + 1 }
+      const dailyDone = dl[t] >= 3
+      if (dailyDone && !s.achievements?.includes?.('daily_goal')) {
+        return { ...s, streak, lastActive: t, dailyLog: dl, achievements: [...(s.achievements || []), 'daily_goal'] }
+      }
+      return { ...s, streak, lastActive: t, dailyLog: dl }
     })
   }, [todayStr])
 
   const addXP = useCallback((n) => setState((s) => ({ ...s, xp: s.xp + n })), [])
+
+  const saveResumePosition = useCallback((level, screen) => {
+    setState((s) => ({ ...s, resumePosition: { level, screen, timestamp: Date.now() } }))
+  }, [])
 
   const checkBadges = useCallback(() => {
     setState((s) => {
@@ -104,7 +122,16 @@ export function ProgressProvider({ children }) {
       const earned = [...s.badges]
       const ctx = { ...s, levelDone: lvlDone, maxUnlocked: () => maxUn }
       BADGES.forEach((b) => { if (!earned.includes(b.id) && b.check(ctx)) earned.push(b.id) })
-      return earned.length === s.badges.length ? s : { ...s, badges: earned }
+      const newBadges = earned.filter((b) => !s.badges.includes(b))
+      newBadges.forEach((b) => {
+        const bd = BADGES.find((x) => x.id === b)
+        if (bd) trackBadgeEarned(b, bd.name)
+      })
+      const aEarned = [...(s.achievements || [])]
+      const aCtx = { xp: s.xp, completed: s.completed.length, interviews: s.interviews.length, quizzes: Object.keys(s.quizScores || {}).length, badges: earned, capstoneDone: s.capstoneDone, streak: s.streak || 0 }
+      ACHIEVEMENTS.forEach((a) => { if (!aEarned.includes(a.id) && a.check(aCtx)) aEarned.push(a.id) })
+      return earned.length === s.badges.length && aEarned.length === (s.achievements || []).length
+        ? s : { ...s, badges: earned, achievements: aEarned }
     })
   }, [])
 
@@ -114,10 +141,10 @@ export function ProgressProvider({ children }) {
   const reset = useCallback(() => setState(DEFAULT), [])
 
   const actions = useMemo(() => ({
-    update, addXP, bumpStreak, checkBadges,
+    update, addXP, bumpStreak, checkBadges, saveResumePosition,
     screenId, levelScreens, todayStr, exportData: () => JSON.stringify(stateRef.current, null, 2),
     importData, reset
-  }), [update, addXP, bumpStreak, checkBadges, screenId, levelScreens, todayStr, importData, reset])
+  }), [update, addXP, bumpStreak, checkBadges, saveResumePosition, screenId, levelScreens, todayStr, importData, reset])
 
   const stateValue = useMemo(() => {
     const levelDoneCount = (lvl, s) => {
@@ -138,8 +165,18 @@ export function ProgressProvider({ children }) {
       const st = s || stateRef.current
       return Math.round((st.completed.length / totalScreens) * 100)
     }
-    return { state, levelDoneCount, levelDone, maxUnlocked, isUnlocked, masteryPct, totalScreens }
-  }, [state, levelScreens, screenId])
+    const dailyScreens = () => {
+      const t = todayStr()
+      return stateRef.current.dailyLog?.[t] || 0
+    }
+    const formatTime = (seconds) => {
+      const h = Math.floor(seconds / 3600)
+      const m = Math.floor((seconds % 3600) / 60)
+      if (h > 0) return `${h}h ${m}m`
+      return `${m}m`
+    }
+    return { state, levelDoneCount, levelDone, maxUnlocked, isUnlocked, masteryPct, totalScreens, dailyScreens, formatTime }
+  }, [state, levelScreens, screenId, todayStr])
 
   return (
     <StateContext.Provider value={stateValue}>

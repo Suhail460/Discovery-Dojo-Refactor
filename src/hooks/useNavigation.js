@@ -29,10 +29,15 @@ export function useNavigation(toast) {
     window.scrollTo(0, 0)
   }, [navigate])
 
-  const openLevel = useCallback((lvl) => {
+  const openLevel = useCallback((lvl, screenIdx) => {
     if (!store.isUnlocked(lvl)) { toast?.('Finish the previous level to unlock this.', 'lock'); return }
-    let idx = 0; const n = store.levelScreens(lvl)
-    for (let i = 0; i < n; i++) { if (!store.state.completed.includes(store.screenId(lvl, i))) { idx = i; break } if (i === n - 1) idx = i }
+    let idx
+    if (screenIdx !== undefined && screenIdx >= 0 && !store.state.completed.includes(store.screenId(lvl, screenIdx))) {
+      idx = screenIdx
+    } else {
+      idx = 0; const n = store.levelScreens(lvl)
+      for (let i = 0; i < n; i++) { if (!store.state.completed.includes(store.screenId(lvl, i))) { idx = i; break } if (i === n - 1) idx = i }
+    }
     navigate(`/level/${lvl}/${idx}`); window.scrollTo(0, 0)
   }, [navigate, store, toast])
 
