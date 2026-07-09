@@ -13,9 +13,9 @@ const NAV = [
   { view: 'badges', label: 'Skill Tree & Badges', icon: Award },
 ]
 
-export default function Sidebar({ nav, open, onClose, onReset }) {
+export default function Sidebar({ nav, open, onClose, onReset: _onReset }) {
   const { view, level } = nav.current
-  const { levelDoneCount, levelScreens, levelDone, isUnlocked, maxUnlocked } = useStore()
+  const { levelDone, isUnlocked, maxUnlocked } = useStore()
   const { user } = useAuth()
   const [pathOpen, setPathOpen] = useState(true)
   const mu = maxUnlocked()
@@ -25,7 +25,7 @@ export default function Sidebar({ nav, open, onClose, onReset }) {
   return (
     <>
       {open && <div onClick={onClose} className="sb-overlay" aria-hidden="true" />}
-      <aside className={'sidebar' + (open ? ' open' : '')} role="navigation" aria-label="Navigation sidebar">
+      <aside className={'sidebar' + (open ? ' open' : '')} role="dialog" aria-modal={open ? 'true' : undefined} aria-label="Navigation sidebar">
         {/* ═══ BRAND ═══ */}
         <div className="sb-brand">
           <div className="sb-brand-icon">
@@ -43,8 +43,8 @@ export default function Sidebar({ nav, open, onClose, onReset }) {
         {/* ═══ SCROLLABLE MIDDLE ═══ */}
         <div className="sb-scroll">
           {/* ─── PRACTICE ─── */}
-          <div className="sb-section">
-            <div className="sb-section-header">Practice</div>
+          <div className="sb-section" role="group" aria-label="Practice modules">
+            <div className="sb-section-header" id="sb-practice-heading">Practice</div>
             {NAV.map((n) => {
               const active = view === n.view
               return (
@@ -59,8 +59,8 @@ export default function Sidebar({ nav, open, onClose, onReset }) {
           </div>
 
           {/* ─── LEARNING PATH ─── */}
-          <div className="sb-section">
-            <button className="sb-collapse-btn" onClick={() => setPathOpen(!pathOpen)}>
+          <div className="sb-section" role="group" aria-label="Learning path levels">
+            <button className="sb-collapse-btn" onClick={() => setPathOpen(!pathOpen)} aria-expanded={pathOpen}>
               <span className="sb-section-header" style={{ margin: 0 }}>Learning Path</span>
               <ChevronDown size={14} style={{
                 color: '#C4C8D0',

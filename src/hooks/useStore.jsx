@@ -6,12 +6,13 @@ import { BADGES } from '../data/gamedata.js'
 
 /* ============================================================================
    PROGRESS STORE
-   Per-user progress persisted to localStorage. Keyed by user id so multiple
-   accounts on one machine stay separate. Swap the load/save internals for a
-   database call later (e.g. Supabase row per user) without touching the UI.
+   Split into StateContext (triggers re-renders) and ActionsContext (stable).
+   Components that only call actions (e.g. InterviewSim) can use useActions()
+   to avoid re-rendering when state changes.
    ============================================================================ */
 
-const StoreContext = createContext(null)
+const StateContext = createContext(null)
+const ActionsContext = createContext(null)
 
 const DEFAULT = {
   xp: 0, completed: [], quizScores: {}, quizWins: 0, reflections: {}, confidence: {},
@@ -20,15 +21,17 @@ const DEFAULT = {
 }
 
 const keyFor = (uid) => `dojo_progress_${uid || 'anon'}`
+const totalScreens = CURRICULUM.reduce((a, l) => a + l.screens.length, 0)
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth()
   const uid = user?.id
   const [state, setState] = useState(DEFAULT)
+  const stateRef = useRef(state)
+  stateRef.current = state
 
   const persistRef = useRef(null)
 
-  // Load whenever the user changes.
   useEffect(() => {
     if (!uid) { setState(DEFAULT); return }
     try {
@@ -37,7 +40,6 @@ export function ProgressProvider({ children }) {
     } catch { setState(DEFAULT) }
   }, [uid])
 
-  // Debounced persist on change.
   useEffect(() => {
     if (!uid) return
     clearTimeout(persistRef.current)
@@ -52,22 +54,8 @@ export function ProgressProvider({ children }) {
     return next
   }), [])
 
-  /* ---- helpers ---- */
-  const totalScreens = useMemo(() => CURRICULUM.reduce((a, l) => a + l.screens.length, 0), [])
   const screenId = useCallback((lvl, idx) => `${lvl}.${idx}`, [])
   const levelScreens = useCallback((lvl) => CURRICULUM.find((l) => l.id === lvl).screens.length, [])
-  const levelDoneCount = useCallback((lvl, s = state) => {
-    let c = 0
-    for (let i = 0; i < levelScreens(lvl); i++) if (s.completed.includes(screenId(lvl, i))) c++
-    return c
-  }, [levelScreens, screenId, state])
-  const levelDone = useCallback((lvl, s = state) => levelDoneCount(lvl, s) === levelScreens(lvl), [levelDoneCount, levelScreens, state])
-  const maxUnlocked = useCallback((s = state) => {
-    let m = 1
-    for (let i = 1; i < CURRICULUM.length; i++) { if (levelDone(i, s)) m = i + 1; else break }
-    return m
-  }, [levelDone, state])
-
   const todayStr = useCallback(() => new Date().toISOString().slice(0, 10), [])
 
   const bumpStreak = useCallback(() => {
@@ -84,29 +72,63 @@ export function ProgressProvider({ children }) {
 
   const checkBadges = useCallback(() => {
     setState((s) => {
+      const sRef = { ...s }
+      const lvlDone = (l) => sRef.completed.filter((c) => c.startsWith(`${l}.`)).length === (CURRICULUM.find((x) => x.id === l)?.screens.length || 0)
+      const maxUn = (() => { let m = 1; for (let i = 1; i < CURRICULUM.length; i++) { if (lvlDone(i)) m = i + 1; else break } return m })()
       const earned = [...s.badges]
-      const ctx = { ...s, levelDone: (l) => levelDone(l, s), maxUnlocked: () => maxUnlocked(s) }
+      const ctx = { ...s, levelDone: lvlDone, maxUnlocked: () => maxUn }
       BADGES.forEach((b) => { if (!earned.includes(b.id) && b.check(ctx)) earned.push(b.id) })
       return earned.length === s.badges.length ? s : { ...s, badges: earned }
     })
-  }, [levelDone, maxUnlocked])
+  }, [])
 
-  const importData = (json) => {
+  const importData = useCallback((json) => {
     try { setState({ ...DEFAULT, ...JSON.parse(json) }); return true } catch { return false }
-  }
-  const reset = () => setState(DEFAULT)
+  }, [])
+  const reset = useCallback(() => setState(DEFAULT), [])
 
-  const value = useMemo(() => {
-    const isUnlocked = (lvl, s = state) => lvl <= maxUnlocked(s)
-    const masteryPct = () => Math.round((state.completed.length / totalScreens) * 100)
-    const exportData = () => JSON.stringify(state, null, 2)
-    return {
-      state, update, addXP, bumpStreak, checkBadges,
-      screenId, levelScreens, levelDoneCount, levelDone, maxUnlocked, isUnlocked,
-      masteryPct, totalScreens, todayStr, exportData, importData, reset
+  const actions = useMemo(() => ({
+    update, addXP, bumpStreak, checkBadges,
+    screenId, levelScreens, todayStr, exportData: () => JSON.stringify(stateRef.current, null, 2),
+    importData, reset
+  }), [update, addXP, bumpStreak, checkBadges, screenId, levelScreens, todayStr, importData, reset])
+
+  const stateValue = useMemo(() => {
+    const levelDoneCount = (lvl, s) => {
+      const st = s || stateRef.current
+      let c = 0
+      for (let i = 0; i < levelScreens(lvl); i++) if (st.completed.includes(screenId(lvl, i))) c++
+      return c
     }
-  }, [state, update, addXP, bumpStreak, checkBadges, levelDone, levelDoneCount, levelScreens, maxUnlocked, screenId, todayStr, totalScreens])
-  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+    const levelDone = (lvl, s) => levelDoneCount(lvl, s) === levelScreens(lvl)
+    const maxUnlocked = (s) => {
+      const st = s || stateRef.current
+      let m = 1
+      for (let i = 1; i < CURRICULUM.length; i++) { if (levelDone(i, st)) m = i + 1; else break }
+      return m
+    }
+    const isUnlocked = (lvl, s) => lvl <= maxUnlocked(s)
+    const masteryPct = (s) => {
+      const st = s || stateRef.current
+      return Math.round((st.completed.length / totalScreens) * 100)
+    }
+    return { state, levelDoneCount, levelDone, maxUnlocked, isUnlocked, masteryPct, totalScreens }
+  }, [state, levelScreens, screenId])
+
+  return (
+    <StateContext.Provider value={stateValue}>
+      <ActionsContext.Provider value={actions}>
+        {children}
+      </ActionsContext.Provider>
+    </StateContext.Provider>
+  )
 }
 
-export const useStore = () => useContext(StoreContext)
+export const useStore = () => ({
+  ...useContext(StateContext),
+  ...useContext(ActionsContext)
+})
+
+export const useStoreState = () => useContext(StateContext)
+
+export const useStoreActions = () => useContext(ActionsContext)

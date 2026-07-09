@@ -29,10 +29,10 @@ export default function Badges() {
           const unlocked = isUnlocked(l.id), done = levelDone(l.id)
           const pct = Math.round((levelDoneCount(l.id) / levelScreens(l.id)) * 100)
           return (
-            <div key={l.id} onClick={() => unlocked && nav.openLevel(l.id)} className="card" style={{ padding: 24, textAlign: 'center', opacity: unlocked ? 1 : .45, cursor: unlocked ? 'pointer' : 'default', position: 'relative' }}>
+            <div key={l.id} onClick={() => unlocked && nav.openLevel(l.id)} tabIndex={unlocked ? 0 : -1} onKeyDown={(e) => e.key === 'Enter' && unlocked && nav.openLevel(l.id)} role={unlocked ? 'button' : undefined} aria-label={unlocked ? `Level ${l.id}: ${l.title}` : undefined} className="card" style={{ padding: 24, textAlign: 'center', opacity: unlocked ? 1 : .45, cursor: unlocked ? 'pointer' : 'default', position: 'relative' }}>
               {done && <span style={{ position: 'absolute', top: 10, right: 10, color: 'var(--ok)' }}><CheckCircle2 size={18} /></span>}
               <div style={{ fontSize: '2.4rem', lineHeight: 1, marginBottom: 10, filter: unlocked ? 'none' : 'grayscale(1)' }}>{l.emoji}</div>
-              <h5 style={{ fontSize: '.92rem', marginBottom: 4 }}>{l.title}</h5>
+              <h4 style={{ fontSize: '.92rem', marginBottom: 4 }}>{l.title}</h4>
               <p style={{ fontSize: '.76rem', color: 'var(--ink-3)', margin: 0 }}>{done ? 'Mastered' : unlocked ? pct + '% done' : 'Locked'}</p>
               {unlocked && !done && <div style={{ width: '100%', height: 6, background: 'var(--line-soft)', borderRadius: 6, marginTop: 8, overflow: 'hidden' }}><div style={{ height: '100%', width: pct + '%', background: 'var(--primary)' }} /></div>}
             </div>
@@ -49,7 +49,7 @@ export default function Badges() {
             <div key={b.id} className="card" style={{ padding: 24, textAlign: 'center', opacity: has ? 1 : .45, position: 'relative' }}>
               {has && <span style={{ position: 'absolute', top: 10, right: 10, color: 'var(--ok)' }}><CheckCircle2 size={18} /></span>}
               <div style={{ fontSize: '2.4rem', lineHeight: 1, marginBottom: 10, filter: has ? 'none' : 'grayscale(1)' }}>{b.em}</div>
-              <h5 style={{ fontSize: '.92rem', marginBottom: 4 }}>{b.name}</h5>
+              <h4 style={{ fontSize: '.92rem', marginBottom: 4 }}>{b.name}</h4>
               <p style={{ fontSize: '.76rem', color: 'var(--ink-3)', margin: 0 }}>{b.desc}</p>
             </div>
           )

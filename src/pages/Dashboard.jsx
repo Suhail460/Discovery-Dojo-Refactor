@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
-import { Play, Mic, Zap, CheckCircle2, Award, Lock, Check, Signal, BookOpen, Dices, Swords, ArrowRight, Sparkles, TrendingUp, Target, Shield, Clock, Star, Flag, BarChart3, Edit3 } from 'lucide-react'
+import { Play, Mic, Zap, CheckCircle2, Award, Lock, Check, Signal, BookOpen, Dices, Swords, ArrowRight, Sparkles, TrendingUp, Target, Clock, Star, Flag, BarChart3, Edit3 } from 'lucide-react'
 import { CURRICULUM } from '../data/curriculum.js'
 import { BADGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
@@ -26,7 +26,6 @@ export default function Dashboard() {
   const mu = maxUnlocked()
   const doneLevels = CURRICULUM.filter((l) => levelDone(l.id)).length
   const first = state.completed.length === 0
-  const nextBadge = BADGES.find((b) => !state.badges.includes(b.id))
   const nextLevel = CURRICULUM.find((l) => !levelDone(l.id) && isUnlocked(l.id))
   const streakVal = state.streak || 0
 
@@ -165,7 +164,7 @@ export default function Dashboard() {
           {nextLevel && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.45 }}>
               <div className="dash-section-title"><Play size={15} /> Continue learning</div>
-              <div className="card dash-continue-card" onClick={() => nav.openLevel(nextLevel.id)}>
+              <div className="card dash-continue-card" onClick={() => nav.openLevel(nextLevel.id)} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && nav.openLevel(nextLevel.id)} role="button" aria-label={`Continue Level ${nextLevel.id}: ${nextLevel.title}`}>
                 <div className="dash-continue-left">
                   <div className="dash-continue-icon">{nextLevel.emoji}</div>
                   <div className="dash-continue-body">
@@ -297,7 +296,7 @@ export default function Dashboard() {
             <div className="dash-sidebar-title"><BarChart3 size={12} /> Weekly progress</div>
             <div className="card dash-weekly-card">
               <div className="dash-weekly-bars">
-                {['M','T','W','T','F','S','S'].map((d, i) => {
+                {['M','T','W','Th','F','Sa','Su'].map((d, i) => {
                   const active = i < Math.min(streakVal, 7)
                   const h = [55, 35, 75, 45, 85, 25, 15]
                   return (
@@ -328,7 +327,7 @@ export default function Dashboard() {
             { emoji: <Award size={18} />, title: 'View badges', desc: 'Track achievements', action: () => nav.go('badges') },
             ...(state.capstone && Object.keys(state.capstone).length > 0 ? [{ emoji: <Flag size={18} />, title: 'Resume capstone', desc: 'Continue your project', action: () => nav.go('capstone') }] : []),
           ].map((r, i) => (
-            <motion.div key={i} whileHover={{ y: -3 }} className="card card-clickable dash-rec-card" onClick={r.action}>
+            <motion.div key={i} whileHover={{ y: -3 }} className="card card-clickable dash-rec-card" onClick={r.action} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && r.action()} role="button" aria-label={r.title}>
               <div className="dash-rec-emoji">{r.emoji}</div>
               <div className="dash-rec-body">
                 <div className="dash-rec-title">{r.title}</div>

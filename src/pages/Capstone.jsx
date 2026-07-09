@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import * as Icons from 'lucide-react'
-import { Flag, Save, Award, Check } from 'lucide-react'
+import { Flag, Save, Award, Check, Lightbulb, Users, Target, ListChecks, ClipboardList, Search, FileText, BarChart3, Map } from 'lucide-react'
 import { CAP_STAGES } from '../data/gamedata.js'
 import { useStore } from '../hooks/useStore.jsx'
 import SEO from '../components/common/SEO.jsx'
-import { toPascal } from '../utils/helpers.js'
 import { useNavigation } from '../hooks/useNavigation.js'
 import { useToast } from '../context/ToastContext.jsx'
+
+const CAP_ICONS = { lightbulb: Lightbulb, users: Users, target: Target, 'list-checks': ListChecks, 'clipboard-list': ClipboardList, search: Search, 'file-text': FileText, 'bar-chart-3': BarChart3, map: Map }
 
 export default function Capstone() {
   const nav = useNavigation()
@@ -58,7 +58,7 @@ export default function Capstone() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {CAP_STAGES.map((s, i) => {
-          const Icon = Icons[toPascal(s.icon)] || Flag
+          const Icon = CAP_ICONS[s.icon] || Flag
           const isFilled = (draft[s.id] || '').trim()
           return (
             <div key={s.id} className="card" style={{ padding: 24 }}>

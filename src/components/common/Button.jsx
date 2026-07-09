@@ -1,5 +1,3 @@
-import { forwardRef } from 'react'
-
 const VARIANTS = {
   primary: { className: 'btn-primary' },
   secondary: { className: 'btn-secondary' },

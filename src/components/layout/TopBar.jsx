@@ -1,20 +1,33 @@
 import { useState, useRef, useEffect } from 'react'
-import { Menu, Zap, Flame, Gauge, Moon, Sun, LogOut, Download, Upload, Sparkles, Bell } from 'lucide-react'
+import { Menu, Zap, Flame, Gauge, Monitor, Moon, Sun, LogOut, Download, Upload, Sparkles, Bell, Award, Play, Mic, Flame as FlameIcon, AlertTriangle } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 import { useStore } from '../../hooks/useStore.jsx'
 import { useTheme } from '../../context/ThemeContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { useNotifications } from '../../hooks/useNotifications.js'
+
+const notifIcons = { award: Award, play: Play, mic: Mic, flame: FlameIcon, 'alert-triangle': AlertTriangle }
+
+const themeIcons = { light: <Moon size={16} />, dark: <Sun size={16} />, system: <Monitor size={16} /> }
 
 export default function TopBar({ nav, onMenu, onCoachToggle }) {
   const { state, masteryPct, exportData, importData } = useStore()
   const { theme, toggle } = useTheme()
   const { user, logout } = useAuth()
+  const notifications = useNotifications()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
   const fileRef = useRef(null)
   const popRef = useRef(null)
+  const notifRef = useRef(null)
 
   useEffect(() => {
     const h = (e) => { if (popRef.current && !popRef.current.contains(e.target)) setMenuOpen(false) }
+    document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h)
+  }, [])
+
+  useEffect(() => {
+    const h = (e) => { if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false) }
     document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h)
   }, [])
 
@@ -46,8 +59,42 @@ export default function TopBar({ nav, onMenu, onCoachToggle }) {
         <Chip icon={<Flame size={13} />} color="var(--amber)" bg="var(--amber-wash)"><span className="tnum">{state.streak || 0}</span></Chip>
         <Chip icon={<Gauge size={13} />} color="var(--green)" bg="var(--green-wash)" hideSm><span className="tnum">{masteryPct()}%</span></Chip>
         <IconBtn onClick={onCoachToggle} title="Ask the AI coach"><Sparkles size={16} /></IconBtn>
-        <IconBtn title="Notifications" style={{ position: 'relative' }}><Bell size={16} /><span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: 'var(--bad)' }} /></IconBtn>
-        <IconBtn onClick={toggle} title="Toggle theme">{theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}</IconBtn>
+        <div ref={notifRef} style={{ position: 'relative' }}>
+          <IconBtn onClick={() => setNotifOpen((o) => !o)} title="Notifications" aria-haspopup="true" aria-expanded={notifOpen}><Bell size={16} />
+            {notifications.length > 0 && <span style={{ position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: '50%', background: 'var(--bad)' }} />}
+          </IconBtn>
+          {notifOpen && (
+            <div style={{
+              position: 'absolute', right: 0, top: 40, width: 280,
+              background: 'color-mix(in srgb, var(--surface) 80%, transparent)', backdropFilter: 'blur(24px)',
+              border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 8, zIndex: 50,
+              maxHeight: 360, overflowY: 'auto'
+            }}>
+              <div style={{ padding: '6px 8px 10px', borderBottom: '1px solid var(--line)', marginBottom: 4 }}>
+                <div style={{ fontWeight: 700, fontSize: '.85rem' }}>Notifications</div>
+              </div>
+              {notifications.length === 0 ? (
+                <div style={{ padding: '20px 8px', textAlign: 'center', color: 'var(--ink-3)', fontSize: '.8rem' }}>No new notifications</div>
+              ) : (
+                notifications.map((n) => {
+                  const NIcon = notifIcons[n.icon] || Bell
+                  return (
+                    <div key={n.id} style={{ display: 'flex', gap: 10, padding: '8px 8px', borderRadius: 8, alignItems: 'flex-start' }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', flex: 'none', color: 'var(--primary)' }}>
+                        <NIcon size={14} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: '.8rem', lineHeight: 1.3 }}>{n.title}</div>
+                        <div style={{ fontSize: '.72rem', color: 'var(--ink-3)', lineHeight: 1.3 }}>{n.desc}</div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          )}
+        </div>
+        <IconBtn onClick={toggle} title={`Theme: ${theme}`}>{themeIcons[theme] || <Moon size={16} />}</IconBtn>
 
         <div style={{ position: 'relative' }} ref={popRef}>
           <button onClick={() => setMenuOpen(!menuOpen)} aria-label="User menu"

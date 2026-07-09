@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { Mic, Infinity as Inf, Play, Flag, Send, MessagesSquare, MicOff, RotateCcw, AlertTriangle, Megaphone, Check, MinusCircle, ClipboardList } from 'lucide-react'
 import { PERSONA_OPTS } from '../data/gamedata.js'
-import { useStore } from '../hooks/useStore.jsx'
+import { useStoreActions } from '../hooks/useStore.jsx'
 import { clamp, pick, cap } from '../utils/helpers.js'
 import SEO from '../components/common/SEO.jsx'
 import { useToast } from '../context/ToastContext.jsx'
 
 export default function InterviewSim() {
   const { toast } = useToast()
-  const { update, addXP, bumpStreak, checkBadges } = useStore()
+  const { update, addXP, bumpStreak, checkBadges } = useStoreActions()
   const [persona, setPersona] = useState(null)
   const [active, setActive] = useState(false)
   const [log, setLog] = useState([])
@@ -79,17 +79,17 @@ export default function InterviewSim() {
     <div className="fade-in" style={{ maxWidth: 1180, margin: '0 auto' }}>
       <SEO title="Interview Simulator" description="Practice customer interviews with a live AI-powered persona. Get scored on your questioning technique." />
       <Head />
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,320px) 1fr', gap: 24 }} className="sim-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,320px) 1fr', gap: 24 }}>
         <div className="card" style={{ padding: 24, alignSelf: 'start' }}>
           <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(145deg,#4F46E5,var(--primary))', display: 'grid', placeItems: 'center', fontSize: '2rem', marginBottom: 16 }}>{persona?.emoji || '🧑'}</div>
-          <F label="Name"><input className="input" disabled={disabled} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></F>
-          <F label="Age"><input className="input" type="number" disabled={disabled} value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} /></F>
-          <F label="Profession"><Sel field="prof" opts={PERSONA_OPTS.prof} {...{ form, setForm, disabled }} /></F>
-          <F label="Industry"><Sel field="industry" opts={PERSONA_OPTS.industry} {...{ form, setForm, disabled }} /></F>
-          <F label="Personality"><Sel field="personality" opts={PERSONA_OPTS.personality} {...{ form, setForm, disabled }} /></F>
-          <F label="Experience level"><Sel field="exp" opts={PERSONA_OPTS.exp} {...{ form, setForm, disabled }} /></F>
-          <F label="Main pain point"><input className="input" disabled={disabled} value={form.pain} onChange={(e) => setForm({ ...form, pain: e.target.value })} /></F>
-          <F label="Main goal"><input className="input" disabled={disabled} value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} /></F>
+          <F label="Name" id="sim-name"><input className="input" disabled={disabled} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} aria-label="Name" /></F>
+          <F label="Age" id="sim-age"><input className="input" type="number" disabled={disabled} value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} aria-label="Age" /></F>
+          <F label="Profession" id="sim-prof"><Sel field="prof" opts={PERSONA_OPTS.prof} {...{ form, setForm, disabled }} /></F>
+          <F label="Industry" id="sim-industry"><Sel field="industry" opts={PERSONA_OPTS.industry} {...{ form, setForm, disabled }} /></F>
+          <F label="Personality" id="sim-personality"><Sel field="personality" opts={PERSONA_OPTS.personality} {...{ form, setForm, disabled }} /></F>
+          <F label="Experience level" id="sim-exp"><Sel field="exp" opts={PERSONA_OPTS.exp} {...{ form, setForm, disabled }} /></F>
+          <F label="Main pain point" id="sim-pain"><input className="input" disabled={disabled} value={form.pain} onChange={(e) => setForm({ ...form, pain: e.target.value })} aria-label="Main pain point" /></F>
+          <F label="Main goal" id="sim-goal"><input className="input" disabled={disabled} value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} aria-label="Main goal" /></F>
           {active
             ? <button className="btn btn-primary" style={{ width: '100%' }} onClick={end}><Flag size={16} /> End & score interview</button>
             : <button className="btn btn-primary" style={{ width: '100%' }} onClick={start}><Play size={16} /> Start interview</button>}
@@ -146,7 +146,7 @@ function Head() {
     </div>
   )
 }
-function F({ label, children }) { return <div style={{ marginBottom: 12 }}><label style={{ display: 'block', fontSize: '.74rem', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--ink-3)', fontWeight: 700, marginBottom: 5 }}>{label}</label>{children}</div> }
+function F({ label, id, children }) { return <div style={{ marginBottom: 12 }}><label htmlFor={id} style={{ display: 'block', fontSize: '.74rem', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--ink-3)', fontWeight: 700, marginBottom: 5 }}>{label}</label>{children}</div> }
 function Sel({ field, opts, form, setForm, disabled }) { return <select className="input" disabled={disabled} value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })}>{opts.map((o) => <option key={o}>{o}</option>)}</select> }
 
 function Bubble({ m }) {

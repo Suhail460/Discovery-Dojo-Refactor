@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Dices, Infinity as Inf, Shuffle, Mic, ListChecks } from 'lucide-react'
 import { GEN } from '../data/gamedata.js'
-import { useStore } from '../hooks/useStore.jsx'
+import { useStoreActions } from '../hooks/useStore.jsx'
 import { pick, cap } from '../utils/helpers.js'
 import SEO from '../components/common/SEO.jsx'
 import { EmptyState } from '../components/common/index.js'
@@ -9,7 +9,7 @@ import { useNavigation } from '../hooks/useNavigation.js'
 
 export default function Generator() {
   const nav = useNavigation()
-  const { update, addXP, bumpStreak, checkBadges } = useStore()
+  const { update, addXP, bumpStreak, checkBadges } = useStoreActions()
   const [g, setG] = useState(null)
 
   function generate() {

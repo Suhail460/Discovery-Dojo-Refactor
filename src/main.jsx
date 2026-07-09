@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
+import { MotionConfig } from 'framer-motion'
 import AppRouter from './router/AppRouter.jsx'
 import './styles/index.css'
 import { HelmetProvider } from 'react-helmet-async'
@@ -16,8 +17,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <ProgressProvider>
           <ToastProvider>
-            <AppRouter />
-            <Analytics />
+            <MotionConfig reducedMotion="user">
+              <AppRouter />
+              <Analytics />
+            </MotionConfig>
           </ToastProvider>
         </ProgressProvider>
       </AuthProvider>

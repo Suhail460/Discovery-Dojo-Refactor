@@ -133,13 +133,26 @@ function Ordering({ quiz, onResult }) {
   const [items, setItems] = useState(() => shuffle(quiz.items.map((t, i) => ({ t, orig: i }))))
   const [checked, setChecked] = useState(false)
   const dragIdx = useState({ v: null })[0]
+  const [focusIdx, setFocusIdx] = useState(null)
   const allRight = items.every((it, pos) => it.orig === pos)
+
+  function moveItem(from, to) {
+    if (from === to) return
+    const next = [...items]; const [moved] = next.splice(from, 1); next.splice(to, 0, moved)
+    setItems(next); setFocusIdx(to)
+  }
 
   function onDrop(pos) {
     if (dragIdx.v === null || dragIdx.v === pos) return
-    const next = [...items]; const [moved] = next.splice(dragIdx.v, 1); next.splice(pos, 0, moved)
-    setItems(next); dragIdx.v = null
+    moveItem(dragIdx.v, pos); dragIdx.v = null
   }
+
+  function onKeyDown(e, pos) {
+    if (checked) return
+    if (e.key === 'ArrowUp' && pos > 0) { e.preventDefault(); moveItem(pos, pos - 1) }
+    if (e.key === 'ArrowDown' && pos < items.length - 1) { e.preventDefault(); moveItem(pos, pos + 1) }
+  }
+
   return (
     <div>
       <Prompt quiz={quiz} />
@@ -150,10 +163,13 @@ function Ordering({ quiz, onResult }) {
         return (
           <motion.div key={it.orig} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} draggable={!checked}
             onDragStart={() => { dragIdx.v = pos }} onDragOver={(e) => e.preventDefault()} onDrop={() => onDrop(pos)}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', border: '1.5px solid var(--line)', borderRadius: 14, background: 'var(--surface)', marginBottom: 8, cursor: checked ? 'default' : 'grab', transition: 'all .15s' }}>
+            tabIndex={checked ? -1 : 0} role={checked ? undefined : 'button'} aria-label={`Item ${pos + 1}: ${it.t}. Arrow keys to reorder`}
+            onKeyDown={(e) => onKeyDown(e, pos)} onFocus={() => setFocusIdx(pos)}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', border: '1.5px solid ' + (focusIdx === pos ? 'var(--primary)' : 'var(--line)'), borderRadius: 14, background: 'var(--surface)', marginBottom: 8, cursor: checked ? 'default' : 'grab', transition: 'all .15s', outline: focusIdx === pos ? '2px solid var(--primary)' : 'none', outlineOffset: 2 }}>
             <GripVertical size={16} color="var(--ink-3)" />
             <span style={{ width: 24, height: 24, borderRadius: 8, background: numBg, color: numCol, fontWeight: 700, display: 'grid', placeItems: 'center', fontSize: '.8rem', flex: 'none', transition: 'all .2s' }}>{pos + 1}</span>
             <span style={{ flex: 1 }}>{it.t}</span>
+            {!checked && <span style={{ fontSize: '.65rem', color: 'var(--ink-3)', fontWeight: 600, display: 'flex', gap: 4 }}><button onClick={(e) => { e.stopPropagation(); moveItem(pos, Math.max(0, pos - 1)) }} disabled={pos === 0} style={{ border: 'none', background: 'var(--surface-2)', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: 'var(--ink-2)', fontSize: '.7rem' }} aria-label="Move up">↑</button><button onClick={(e) => { e.stopPropagation(); moveItem(pos, Math.min(items.length - 1, pos + 1)) }} disabled={pos === items.length - 1} style={{ border: 'none', background: 'var(--surface-2)', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', color: 'var(--ink-2)', fontSize: '.7rem' }} aria-label="Move down">↓</button></span>}
             {state === 'right' && <Check size={16} color="var(--ok)" />}
             {state === 'wrong' && <X size={16} color="var(--bad)" />}
           </motion.div>
@@ -179,6 +195,17 @@ function Matching({ quiz, onResult }) {
     setSelLeft(null); setMatches(next)
     if (Object.keys(next).length === quiz.pairs.length) onResult(Object.entries(next).every(([l, r]) => +l === +r))
   }
+
+  function handleLeftKey(e, i) {
+    if (done || matches[i] !== undefined) return
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelLeft(i) }
+  }
+
+  function handleRightKey(e, r) {
+    if (done || selLeft === null) return
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickRight(r.i) }
+  }
+
   const cell = (extra) => ({ padding: '11px 14px', borderRadius: 14, marginBottom: 8, fontSize: '.92rem', cursor: 'pointer', border: '1.5px solid var(--line)', transition: 'all .15s', ...extra })
   return (
     <div>
@@ -189,19 +216,23 @@ function Matching({ quiz, onResult }) {
           {quiz.pairs.map((p, i) => {
             const matched = matches[i] !== undefined
             const s = matched ? cell({ borderColor: 'var(--ok)', background: 'var(--ok-wash)', opacity: .75 }) : selLeft === i ? cell({ borderColor: 'var(--primary)', background: 'var(--primary-wash)' }) : cell()
-            return <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} style={s} onClick={() => !matched && !done && setSelLeft(i)}>{p.l}</motion.div>
+            return <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} style={s}
+              onClick={() => !matched && !done && setSelLeft(i)} tabIndex={matched || done ? -1 : 0} role="button"
+              onKeyDown={(e) => handleLeftKey(e, i)} aria-label={matched ? `${p.l} (matched)` : selLeft === i ? `${p.l} (selected)` : p.l}>{p.l}</motion.div>
           })}
         </div>
         <div>
           <div style={{ fontSize: '.72rem', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--ink-3)', fontWeight: 700, marginBottom: 8 }}>Match</div>
           {rights.map((r) => {
             const used = Object.values(matches).includes(r.i)
-            const s = used ? cell({ borderColor: 'var(--ok)', background: 'var(--ok-wash)', opacity: .75 }) : cell()
-            return <motion.div key={r.i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: r.i * 0.03 }} style={s} onClick={() => pickRight(r.i)}>{r.r}</motion.div>
+            const s = used ? cell({ borderColor: 'var(--ok)', background: 'var(--ok-wash)', opacity: .75 }) : selLeft !== null ? cell({ borderColor: 'var(--primary)', background: 'var(--primary-wash)', opacity: .85 }) : cell()
+            return <motion.div key={r.i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: r.i * 0.03 }} style={s}
+              onClick={() => pickRight(r.i)} tabIndex={used || done || selLeft === null ? -1 : 0} role="button"
+              onKeyDown={(e) => handleRightKey(e, r)} aria-label={used ? `${r.r} (matched)` : r.r}>{r.r}</motion.div>
           })}
         </div>
       </div>
-      <div style={{ marginTop: 10, fontSize: '.8rem', color: 'var(--ink-3)', fontWeight: 500 }}>Tap an item on the left, then its match on the right.</div>
+      <div style={{ marginTop: 10, fontSize: '.8rem', color: 'var(--ink-3)', fontWeight: 500 }}>Tab through items, press Enter to select left, then Enter on right to match.</div>
       <AnimatePresence>{done && <Feedback ok={allRight} index={0}>{allRight ? 'All matched correctly!' : 'Some matches are off. Review and try again.'}</Feedback>}</AnimatePresence>
     </div>
   )

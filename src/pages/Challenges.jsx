@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import * as Icons from 'lucide-react'
-import { Swords, PartyPopper, Lightbulb } from 'lucide-react'
+import { Swords, PartyPopper, Lightbulb, Brain, Search, Target, CheckCircle, MessageCircle, RefreshCw, List, Eye, GitBranch, BarChart3, Mic, Users, Shield, HelpCircle } from 'lucide-react'
 import SEO from '../components/common/SEO.jsx'
 import { CHALLENGES } from '../data/gamedata.js'
-import { useStore } from '../hooks/useStore.jsx'
-import { toPascal } from '../utils/helpers.js'
+import { useStoreActions } from '../hooks/useStore.jsx'
+
+const CHALLENGE_ICONS = { brain: Brain, search: Search, target: Target, 'check-circle': CheckCircle, 'message-circle': MessageCircle, 'refresh-cw': RefreshCw, list: List, eye: Eye, 'git-branch': GitBranch, 'bar-chart-3': BarChart3, mic: Mic, users: Users, shield: Shield, 'help-circle': HelpCircle }
 
 export default function Challenges() {
-  const { update, addXP, bumpStreak, checkBadges } = useStore()
+  const { update, addXP, bumpStreak, checkBadges } = useStoreActions()
   const [answered, setAnswered] = useState({})
 
   function answer(id, j) {
@@ -30,7 +30,7 @@ export default function Challenges() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {CHALLENGES.map((c) => {
-          const Icon = Icons[toPascal(c.icon)] || Swords
+          const Icon = CHALLENGE_ICONS[c.icon] || Swords
           const picked = answered[c.id]
           const done = picked !== undefined
           return (

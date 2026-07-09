@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { LayoutDashboard, Mic, Dices, Swords, Award, Play } from 'lucide-react'
+import { LayoutDashboard, Mic, Dices, Swords, Award } from 'lucide-react'
 
 const ITEMS = [
   { view: 'home', label: 'Learn', icon: LayoutDashboard },

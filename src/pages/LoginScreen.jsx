@@ -23,7 +23,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1.1fr 1fr' }} className="login-root">
+    <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1.1fr 1fr' }} className="login-root-login-screen">
       <div style={{ position: 'relative', overflow: 'hidden', padding: 'clamp(32px,5vw,64px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', color: '#fff', background: 'linear-gradient(150deg, #4F46E5 0%, var(--primary) 130%)' }} className="login-brand">
         <div style={{ position: 'absolute', right: -90, top: -90, width: 360, height: 360, borderRadius: '50%', background: 'oklch(1 0 0 / 0.10)' }} />
         <div style={{ position: 'absolute', right: 40, bottom: -140, width: 300, height: 300, borderRadius: '50%', background: 'oklch(1 0 0 / 0.08)' }} />
@@ -67,10 +67,10 @@ export default function LoginScreen() {
 
           <form onSubmit={submit} style={{ display: 'grid', gap: 12 }}>
             {mode === 'signup' && (
-              <Field icon={<User size={16} />}><input className="input" style={{ paddingLeft: 40 }} placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required /></Field>
+              <Field icon={<User size={16} />}><input className="input" style={{ paddingLeft: 40 }} placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} required aria-label="Your name" /></Field>
             )}
-            <Field icon={<Mail size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></Field>
-            <Field icon={<Lock size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} required /></Field>
+            <Field icon={<Mail size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required aria-label="Email address" /></Field>
+            <Field icon={<Lock size={16} />}><input className="input" style={{ paddingLeft: 40 }} type="password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} required aria-label="Password" /></Field>
 
             {err && <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--bad)', fontSize: '.85rem', background: 'var(--bad-wash)', padding: '9px 12px', borderRadius: 10 }}><AlertCircle size={15} /> {err}</div>}
 

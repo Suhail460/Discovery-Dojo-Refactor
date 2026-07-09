@@ -3,6 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, X, ArrowUp } from 'lucide-react'
 import { CURRICULUM } from '../../data/curriculum.js'
 
+const POS_KEY = 'dojo_coach_pos'
+const SNAP_MARGIN = 16
+
+function loadPos() {
+  try { const p = JSON.parse(localStorage.getItem(POS_KEY)); if (p && typeof p.x === 'number') return p } catch { /* ignore */ }
+  return { x: 0, y: 0 }
+}
+
 export default function Coach({ nav, open: controlledOpen, onClose }) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
@@ -11,8 +19,29 @@ export default function Coach({ nav, open: controlledOpen, onClose }) {
   const [input, setInput] = useState('')
   const bodyRef = useRef(null)
   const [typing, setTyping] = useState(false)
+  const [fabPos, setFabPos] = useState(loadPos)
+  const fabRef = useRef(null)
+  const panelRef = useRef(null)
 
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight }, [msgs, open, typing])
+  useEffect(() => { localStorage.setItem(POS_KEY, JSON.stringify(fabPos)) }, [fabPos])
+
+  function handleDragEnd(_, info) {
+    const fabSize = 54
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const bottomNavH = 64
+    const cx = (fabPos.x || 0) + info.offset.x
+    const cy = (fabPos.y || 0) + info.offset.y
+    const snapX = cx + fabSize / 2 > vw / 2 ? vw - fabSize - SNAP_MARGIN : SNAP_MARGIN
+    const snapY = Math.max(SNAP_MARGIN, Math.min(vh - fabSize - bottomNavH - SNAP_MARGIN, cy))
+    const panelEl = panelRef.current
+    if (panelEl && open) {
+      panelEl.style.right = (vw - snapX - fabSize + SNAP_MARGIN) + 'px'
+      panelEl.style.bottom = 'max(86px, calc(env(safe-area-inset-bottom, 0px) + 80px))'
+    }
+    setFabPos({ x: snapX - 20, y: snapY - 20 })
+  }
 
   const chips = chipsFor(nav.current.view)
   function send(text) {
@@ -25,23 +54,24 @@ export default function Coach({ nav, open: controlledOpen, onClose }) {
 
   return (
     <>
-      <button onClick={() => setOpen(!open)} title="Ask your AI coach" aria-label="Toggle AI coach"
+      <motion.button ref={fabRef} onClick={() => setOpen(!open)} title="Ask your AI coach" aria-label="Toggle AI coach"
         className="coach-fab"
+        drag dragMomentum={false} onDragEnd={handleDragEnd}
         style={{
           position: 'fixed', right: 20, bottom: 20, zIndex: 60, width: 54, height: 54, borderRadius: 16,
           border: 'none', background: 'var(--primary)', color: '#fff', display: 'grid', placeItems: 'center',
-          cursor: 'pointer'
+          cursor: 'grab', touchAction: 'none', x: fabPos.x, y: fabPos.y
         }}>
         <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.25 }}><Sparkles size={24} /></motion.div>
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} transition={{ duration: .22 }}
+          <motion.div ref={panelRef} initial={{ opacity: 0, y: 12, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: .97 }} transition={{ duration: .22 }}
             className="coach-panel"
             style={{
-              position: 'fixed', right: 20, bottom: 86, zIndex: 61, width: 'min(380px, calc(100vw - 40px))',
-              maxHeight: 'min(580px, calc(100vh - 120px))', background: 'var(--surface)',
+              position: 'fixed', right: 20, bottom: 'max(86px, calc(env(safe-area-inset-bottom, 0px) + 80px))', zIndex: 61, width: 'min(380px, calc(100vw - 40px))',
+              maxHeight: 'min(580px, calc(100vh - 140px))', background: 'var(--surface)',
               border: '1px solid var(--line)', borderRadius: 24, display: 'flex', flexDirection: 'column',
               overflow: 'hidden'
             }}>
