@@ -1,9 +1,8 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
-import LoginScreen from '../pages/LoginScreen.jsx'
 import AppLayout from '../components/layout/AppLayout.jsx'
 import ErrorBoundary from '../components/common/ErrorBoundary.jsx'
+import ProtectedRoute from './ProtectedRoute.jsx'
 import { Skeleton } from '../components/common/index.js'
 
 const Dashboard = lazy(() => import('../pages/Dashboard.jsx'))
@@ -29,18 +28,11 @@ function SuspenseFallback() {
   )
 }
 
-function AuthGuard() {
-  const { ready, isAuthed } = useAuth()
-  if (!ready) return null
-  if (!isAuthed) return <LoginScreen />
-  return <Outlet />
-}
-
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AuthGuard />}>
+        <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
           <Route element={<AppLayout />}>
             <Route index element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Dashboard /></Suspense></ErrorBoundary>} />
             <Route path="level/:id/:screen?" element={<ErrorBoundary><Suspense fallback={<SuspenseFallback />}><Lesson /></Suspense></ErrorBoundary>} />

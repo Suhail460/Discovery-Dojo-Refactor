@@ -1,41 +1,78 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react'
-
-/* ============================================================================
-   AUTH CONTROL LAYER
-   ----------------------------------------------------------------------------
-   This is the single place you control login. Out of the box it runs in
-   "demo" mode: accounts live in the browser (localStorage), no server needed,
-   so Google / GitHub / email buttons all work immediately for local use.
-
-   To switch on REAL authentication (real Google/GitHub sign-in), you set
-   ONE variable below (AUTH_MODE) and drop in a provider. See README.md
-   section "Controlling login" for copy-paste steps for Firebase / Clerk /
-   Supabase. The rest of the app never changes: it only calls the functions
-   this context exposes (loginWithProvider, loginWithEmail, signup, logout).
-   ============================================================================ */
-
-// 'demo'  -> local browser accounts (default, zero setup)
-// 'firebase' | 'clerk' | 'supabase' -> real auth (see README to enable)
-export const AUTH_MODE = 'demo'
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+  signInAnonymously
+} from 'firebase/auth'
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { auth, db } from '../firebase/config.js'
 
 const AuthContext = createContext(null)
-const SESSION_KEY = 'dojo_session'
-const USERS_KEY = 'dojo_users'
 
-function loadUsers() {
-  try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {} } catch { return {} }
-}
-function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)) }
-
-function makeUser({ name, email, provider }) {
+function normalizeUser(firebaseUser) {
+  if (!firebaseUser) return null
   return {
-    id: (email || name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Date.now().toString(36),
-    name: name || (email ? email.split('@')[0] : 'Explorer'),
-    email: email || '',
-    provider: provider || 'email',
-    avatar: (name || email || 'U').trim().charAt(0).toUpperCase(),
-    createdAt: Date.now()
+    id: firebaseUser.uid,
+    uid: firebaseUser.uid,
+    name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Explorer',
+    email: firebaseUser.email || '',
+    avatar: firebaseUser.photoURL || (firebaseUser.displayName || 'U').charAt(0).toUpperCase(),
+    provider: firebaseUser.isAnonymous ? 'guest' : firebaseUser.providerData?.[0]?.providerId || 'email',
+    createdAt: firebaseUser.metadata?.createdAt || Date.now(),
+    photoURL: firebaseUser.photoURL
+  }
+}
+
+const FIREBASE_ERRORS = {
+  'auth/popup-closed-by-user': 'Sign-in cancelled. Try again.',
+  'auth/cancelled-popup-request': 'Sign-in cancelled. Try again.',
+  'auth/popup-blocked': 'Popup was blocked. Allow popups and try again.',
+  'auth/network-request-failed': 'Network error. Check your connection.',
+  'auth/wrong-password': 'Wrong password. Try again.',
+  'auth/user-not-found': 'No account found with that email.',
+  'auth/invalid-credential': 'Invalid email or password.',
+  'auth/email-already-in-use': 'An account with that email already exists.',
+  'auth/weak-password': 'Password must be at least 6 characters.',
+  'auth/too-many-requests': 'Too many attempts. Try again later.',
+  'auth/invalid-email': 'Please enter a valid email address.',
+  'auth/user-disabled': 'This account has been disabled.',
+  'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase Console.'
+}
+
+function friendlyError(error) {
+  if (error?.code && FIREBASE_ERRORS[error.code]) return FIREBASE_ERRORS[error.code]
+  if (error?.message) return error.message
+  return 'Something went wrong. Please try again.'
+}
+
+async function ensureUserDocument(user) {
+  if (!user || user.isAnonymous) return
+  const ref = doc(db, 'users', user.uid)
+  const snap = await getDoc(ref)
+  if (snap.exists()) {
+    await updateDoc(ref, { lastLogin: serverTimestamp() })
+  } else {
+    await setDoc(ref, {
+      displayName: user.displayName || '',
+      email: user.email || '',
+      photoURL: user.photoURL || '',
+      provider: user.providerData?.[0]?.providerId || 'email',
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+      xp: 0,
+      level: 1,
+      streak: 0,
+      badges: [],
+      completedLessons: [],
+      completedQuizzes: [],
+      settings: { theme: 'system', notifications: true }
+    })
   }
 }
 
@@ -43,73 +80,63 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [ready, setReady] = useState(false)
 
-  // Restore session on load.
   useEffect(() => {
-    try {
-      const s = JSON.parse(localStorage.getItem(SESSION_KEY))
-      if (s) setUser(s)
-    } catch { /* ignore */ }
-    setReady(true)
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        await ensureUserDocument(firebaseUser)
+        setUser(normalizeUser(firebaseUser))
+      } else {
+        setUser(null)
+      }
+      setReady(true)
+    })
+    return unsub
   }, [])
 
-  function persist(u) {
-    setUser(u)
-    if (u) localStorage.setItem(SESSION_KEY, JSON.stringify(u))
-    else localStorage.removeItem(SESSION_KEY)
-  }
-
-  /* ---- DEMO-MODE implementations ---------------------------------------
-     Replace the bodies of these three with your provider's SDK calls when
-     you flip AUTH_MODE. The signatures stay identical. -------------------- */
-
-  // Social sign-in (Google, GitHub, etc.). In demo mode we fabricate an
-  // account so the flow is fully clickable without any keys.
-  async function loginWithProvider(provider) {
-    if (AUTH_MODE !== 'demo') {
-      // e.g. firebase: return signInWithPopup(auth, new GoogleAuthProvider())
-      throw new Error(`Wire up ${provider} in AuthContext for AUTH_MODE="${AUTH_MODE}"`)
+  async function loginWithProvider(providerId) {
+    if (providerId === 'google') {
+      const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({ prompt: 'select_account' })
+      const result = await signInWithPopup(auth, provider)
+      await ensureUserDocument(result.user)
+      setUser(normalizeUser(result.user))
+      return result.user
     }
-    const nameByProvider = { google: 'Google User', github: 'GitHub User', apple: 'Apple User' }
-    const u = makeUser({ name: nameByProvider[provider] || 'User', email: `${provider}.user@demo.local`, provider })
-    const users = loadUsers(); users[u.email] = u; saveUsers(users)
-    persist(u)
-    return u
+    throw new Error(`Provider "${providerId}" is not configured yet.`)
   }
 
   async function loginWithEmail(email, password) {
-    if (AUTH_MODE !== 'demo') {
-      // e.g. firebase: return signInWithEmailAndPassword(auth, email, password)
-      throw new Error('Wire up email login for your provider in AuthContext')
-    }
-    const users = loadUsers()
-    const rec = users[email.toLowerCase()]
-    if (!rec) throw new Error('No account with that email. Try signing up.')
-    if (rec.password && rec.password !== password) throw new Error('Wrong password.')
-    const { password: _pw, ...safe } = rec
-    persist(safe)
-    return safe
+    const result = await signInWithEmailAndPassword(auth, email, password).catch((e) => {
+      throw new Error(friendlyError(e))
+    })
+    await ensureUserDocument(result.user)
+    setUser(normalizeUser(result.user))
+    return result.user
   }
 
   async function signup(name, email, password) {
-    if (AUTH_MODE !== 'demo') {
-      // e.g. firebase: return createUserWithEmailAndPassword(auth, email, password)
-      throw new Error('Wire up signup for your provider in AuthContext')
+    const result = await createUserWithEmailAndPassword(auth, email, password).catch((e) => {
+      throw new Error(friendlyError(e))
+    })
+    if (name) {
+      await updateProfile(result.user, { displayName: name })
     }
-    const users = loadUsers()
-    if (users[email.toLowerCase()]) throw new Error('An account with that email already exists.')
-    const u = makeUser({ name, email, provider: 'email' })
-    users[email.toLowerCase()] = { ...u, password }
-    saveUsers(users)
-    persist(u)
-    return u
+    await ensureUserDocument(result.user)
+    const updated = { ...result.user, displayName: result.user.displayName || name }
+    setUser(normalizeUser(updated))
+    return result.user
   }
 
-  // Explore without an account. Progress still saves locally under "guest".
   async function loginAsGuest() {
-    persist(makeUser({ name: 'Guest', email: '', provider: 'guest' }))
+    const result = await signInAnonymously(auth)
+    setUser(normalizeUser(result.user))
+    return result.user
   }
 
-  function logout() { persist(null) }
+  async function logout() {
+    await signOut(auth)
+    setUser(null)
+  }
 
   return (
     <AuthContext.Provider value={{
